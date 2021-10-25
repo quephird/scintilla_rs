@@ -3,7 +3,7 @@ use crate::tuple;
 
 type Matrix2 = [[f64; 2]; 2];
 type Matrix3 = [[f64; 3]; 3];
-type Matrix4 = [[f64; 4]; 4];
+pub type Matrix4 = [[f64; 4]; 4];
 
 const IDENTITY: Matrix4 = [
     [1., 0., 0., 0.],
@@ -354,6 +354,4 @@ mod tests {
         let c = multiply_by_matrix(a, b);
         assert_eq!(is_equal(multiply_by_matrix(c, inverse_4x4(b).unwrap()), a), true);
     }
-
-
 }
