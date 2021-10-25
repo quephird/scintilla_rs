@@ -1,6 +1,6 @@
 use crate::float;
 
-type Tuple = [f64; 4];
+pub type Tuple = [f64; 4];
 
 pub fn is_point(t: Tuple) -> bool {
     float::is_equal(t[3], 1.0)
@@ -42,7 +42,7 @@ pub fn normalize(t: Tuple) -> Tuple {
 }
 
 pub fn dot(t1: Tuple, t2: Tuple) -> f64 {
-    t1[0]*t2[0] + t1[1]*t2[1] + t1[2]*t2[2]
+    t1[0]*t2[0] + t1[1]*t2[1] + t1[2]*t2[2] + t1[3]*t2[3]
 }
 
 pub fn cross(t1: Tuple, t2: Tuple) -> Tuple {
