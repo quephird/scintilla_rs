@@ -5,7 +5,7 @@ type Matrix2 = [[f64; 2]; 2];
 type Matrix3 = [[f64; 3]; 3];
 pub type Matrix4 = [[f64; 4]; 4];
 
-const IDENTITY: Matrix4 = [
+pub const IDENTITY: Matrix4 = [
     [1., 0., 0., 0.],
     [0., 1., 0., 0.],
     [0., 0., 1., 0.],

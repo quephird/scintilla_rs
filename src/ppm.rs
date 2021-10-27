@@ -18,7 +18,7 @@ fn scale_and_clamp(f: f64) -> u8 {
     }
 }
 
-trait Saveable {
+pub trait Saveable {
     fn write_header(&self, file: &mut File);
 
     fn write_color_component(&self, current_line: &mut String, f: f64);
