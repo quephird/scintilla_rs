@@ -1,3 +1,4 @@
+use crate::light::Light;
 use crate::ppm::Saveable;
 use crate::shape::Shape;
 
@@ -5,6 +6,8 @@ mod canvas;
 mod color;
 mod float;
 mod intersection;
+mod light;
+mod material;
 mod matrix;
 mod ppm;
 mod ray;
@@ -22,8 +25,12 @@ fn main() {
     let pixel_size = wall_size / canvas_pixels as f64;
 
     let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
-    let red = [1., 0., 0.];
-    let shape = sphere::Sphere::new();
+    let mut shape = sphere::Sphere::new();
+    shape.material.color = [1., 0.2, 1.];
+
+    let light_position = tuple::point(-10., 10., -10.);
+    let light_color = [1., 1., 1.];
+    let light = Light::new(light_position, light_color);
 
     // For each row of pixels in the canvas
     println!("Rendering scene...");
@@ -37,10 +44,17 @@ fn main() {
             // Describe the point on the wall that the ray will target
             let position = [world_x, world_y, wall_z, 1.0];
             let direction = tuple::normalize(tuple::subtract(position, ray_origin));
+
             let ray = ray::Ray::new(ray_origin, direction);
-            let mut intersections = shape.intersect(ray);
+            let mut intersections = shape.intersect(&ray);
             match intersection::hit(&mut intersections) {
-                Some(_) => canvas.set_pixel(x, y, red),
+                Some(hit) => {
+                    let point = ray.position_at(hit.t);
+                    let normal = hit.object.normal_at(point);
+                    let eye = tuple::negate(ray.direction);
+                    let color = hit.object.get_material().lighting(&light, point, eye, normal);
+                    canvas.set_pixel(x, y, color);
+                },
                 None => ()
             }
         }
