@@ -3,7 +3,69 @@ use crate::tuple;
 use crate::tuple::TupleMethods;
 
 type Matrix2 = [[f64; 2]; 2];
+
+trait Matrix2Methods {
+    fn determinant(&self) -> f64;
+}
+
+impl Matrix2Methods for Matrix2 {
+    fn determinant(&self) -> f64 {
+        self[0][0]*self[1][1] - self[0][1]*self[1][0]
+    }
+}
+
 type Matrix3 = [[f64; 3]; 3];
+
+trait Matrix3Methods {
+    fn submatrix(&self, i: usize, j: usize) -> Matrix2;
+    fn minor(&self, i: usize, j: usize) -> f64;
+    fn cofactor(&self, i: usize, j: usize) -> f64;
+    fn determinant(&self) -> f64;
+}
+
+impl Matrix3Methods for Matrix3 {
+    fn submatrix(&self, i: usize, j: usize) -> Matrix2 {
+        let mut m2: Matrix2 = [[0.; 2]; 2];
+        let mut r2 = 0;
+        for r in 0..3 {
+            let mut c2 = 0;
+            if r == j {
+                continue;
+            }
+            for c in 0..3 {
+                if c == i {
+                    continue;
+                }
+                m2[r2][c2] = self[r][c];
+                c2 += 1;
+            }
+            r2 +=1;
+        }
+        m2
+    }
+
+    fn determinant(&self) -> f64 {
+        let mut d = 0.;
+        for i in 0..3 {
+            d += self[0][i]*(*self).cofactor(i, 0);
+        }
+        d
+    }
+
+    fn minor(&self, i: usize, j: usize) -> f64 {
+        self.submatrix(i, j).determinant()
+    }
+
+    fn cofactor(&self, i: usize, j: usize) -> f64 {
+        let minor = self.minor(i, j);
+        if (i+j) % 2 == 0 {
+            minor
+        } else {
+            -minor
+        }
+    }
+}
+
 pub type Matrix4 = [[f64; 4]; 4];
 
 pub const IDENTITY: Matrix4 = [
@@ -13,143 +75,110 @@ pub const IDENTITY: Matrix4 = [
     [0., 0., 0., 1.]
 ];
 
-pub fn is_equal(m1: Matrix4, m2: Matrix4) -> bool {
-    for r in 0..4 {
-        for c in 0..4 {
-            if !float::is_equal(m1[r][c], m2[r][c]) {
+pub trait Matrix4Methods {
+    fn is_equal(&self, other: Matrix4) -> bool;
+    fn multiply_matrix(&self, other: Matrix4) -> Matrix4;
+    fn multiply_tuple(&self, t: tuple::Tuple) -> tuple::Tuple;
+    fn transpose(&self) -> Matrix4;
+    fn submatrix(&self, i: usize, j: usize) -> Matrix3;
+    fn minor(&self, i: usize, j: usize) -> f64;
+    fn cofactor(&self, i: usize, j: usize) -> f64;
+    fn determinant(&self) -> f64;
+    fn inverse(&self) -> Option<Matrix4>;
+}
+
+impl Matrix4Methods for Matrix4 {
+    fn is_equal(&self, other: Matrix4) -> bool {
+        for row in 0..4 {
+            if !self[row].is_equal(other[row]) {
                 return false
             }
         }
+        true
     }
-    true
-}
 
-pub fn multiply_by_matrix(m1: Matrix4, m2: Matrix4) -> Matrix4 {
-    let mut m3: Matrix4 = [[0.; 4]; 4];
-    for r in 0..4 {
-        for c in 0..4 {
-            m3[r][c] = m1[r].dot([m2[0][c], m2[1][c], m2[2][c], m2[3][c]]);
-        }
-    }
-    m3
-}
-
-pub fn multiply_by_tuple(m: Matrix4, t: tuple::Tuple) -> tuple::Tuple {
-    let mut t2: tuple::Tuple = [0.; 4];
-    for r in 0..4 {
-        t2[r] = m[r].dot(t);
-    }
-    t2
-}
-
-pub fn transpose(m: Matrix4) -> Matrix4 {
-    let mut m2: Matrix4 = [[0.; 4]; 4];
-    for r in 0..4 {
-        for c in 0..4 {
-            m2[r][c] = m[c][r];
-        }
-    }
-    m2
-}
-
-pub fn determinant_2x2(m: Matrix2) -> f64 {
-    m[0][0]*m[1][1] - m[0][1]*m[1][0]
-}
-
-pub fn submatrix_3x3(m: Matrix3, i: usize, j: usize) -> Matrix2 {
-    let mut m2: Matrix2 = [[0.; 2]; 2];
-    let mut r2 = 0;
-    for r in 0..3 {
-        let mut c2 = 0;
-        if r == j {
-            continue;
-        }
-        for c in 0..3 {
-            if c == i {
-                continue;
-            }
-            m2[r2][c2] = m[r][c];
-            c2 += 1;
-        }
-        r2 +=1;
-    }
-    m2
-}
-
-pub fn minor_3x3(m: Matrix3, i: usize, j: usize) -> f64 {
-    determinant_2x2(submatrix_3x3(m, i, j))
-}
-
-pub fn cofactor_3x3(m: Matrix3, i: usize, j: usize) -> f64 {
-    let minor = minor_3x3(m, i, j);
-    if (i+j) % 2 == 0 {
-        minor
-    } else {
-        -minor
-    }
-}
-
-pub fn determinant_3x3(m: Matrix3) -> f64 {
-    let mut d = 0.;
-    for i in 0..3 {
-        d += m[0][i]*cofactor_3x3(m, i, 0);
-    }
-    d
-}
-
-pub fn submatrix_4x4(m: Matrix4, i: usize, j: usize) -> Matrix3 {
-    let mut m2: Matrix3 = [[0.; 3]; 3];
-    let mut r2 = 0;
-    for r in 0..4 {
-        let mut c2 = 0;
-        if r == j {
-            continue;
-        }
-        for c in 0..4 {
-            if c == i {
-                continue;
-            }
-            m2[r2][c2] = m[r][c];
-            c2 += 1;
-        }
-        r2 +=1;
-    }
-    m2
-}
-
-pub fn minor_4x4(m: Matrix4, i: usize, j: usize) -> f64 {
-    determinant_3x3(submatrix_4x4(m, i, j))
-}
-
-pub fn cofactor_4x4(m: Matrix4, i: usize, j: usize) -> f64 {
-    let minor = minor_4x4(m, i, j);
-    if (i+j) % 2 == 0 {
-        minor
-    } else {
-        -minor
-    }
-}
-
-pub fn determinant_4x4(m: Matrix4) -> f64 {
-    let mut d = 0.;
-    for i in 0..4 {
-        d += m[0][i]*cofactor_4x4(m, i, 0);
-    }
-    d
-}
-
-pub fn inverse_4x4(m: Matrix4) -> Option<Matrix4> {
-    let d = determinant_4x4(m);
-    if d == 0. {
-        None
-    } else {
-        let mut m2: Matrix4 = [[0.; 4]; 4];
+    fn multiply_matrix(&self, other: Matrix4) -> Matrix4 {
+        let mut m: Matrix4 = [[0.; 4]; 4];
         for r in 0..4 {
             for c in 0..4 {
-                m2[c][r] = cofactor_4x4(m, c, r)/d;
+                m[r][c] = self[r].dot([other[0][c], other[1][c], other[2][c], other[3][c]]);
             }
         }
-        Some(m2)
+        m
+    }
+
+    fn multiply_tuple(&self, t: tuple::Tuple) -> tuple::Tuple {
+        let mut t2: tuple::Tuple = [0.; 4];
+        for r in 0..4 {
+            t2[r] = self[r].dot(t);
+        }
+        t2
+    }
+
+    fn transpose(&self) -> Matrix4 {
+        let mut m: Matrix4 = [[0.; 4]; 4];
+        for r in 0..4 {
+            for c in 0..4 {
+                m[r][c] = self[c][r];
+            }
+        }
+        m
+    }
+
+    fn submatrix(&self, i: usize, j: usize) -> Matrix3 {
+        let mut m2: Matrix3 = [[0.; 3]; 3];
+        let mut r2 = 0;
+        for r in 0..4 {
+            let mut c2 = 0;
+            if r == j {
+                continue;
+            }
+            for c in 0..4 {
+                if c == i {
+                    continue;
+                }
+                m2[r2][c2] = self[r][c];
+                c2 += 1;
+            }
+            r2 +=1;
+        }
+        m2
+    }
+
+    fn minor(&self, i: usize, j: usize) -> f64 {
+        self.submatrix(i, j).determinant()
+    }
+
+    fn cofactor(&self, i: usize, j: usize) -> f64 {
+        let minor = self.minor(i, j);
+        if (i+j) % 2 == 0 {
+            minor
+        } else {
+            -minor
+        }
+    }
+
+    fn determinant(&self) -> f64 {
+        let mut d = 0.;
+        for i in 0..4 {
+            d += self[0][i]*(*self).cofactor(i, 0);
+        }
+        d
+    }
+
+    fn inverse(&self) -> Option<Matrix4> {
+        let d = self.determinant();
+        if d == 0. {
+            None
+        } else {
+            let mut m2: Matrix4 = [[0.; 4]; 4];
+            for r in 0..4 {
+                for c in 0..4 {
+                    m2[c][r] = (*self).cofactor(c, r)/d;
+                }
+            }
+            Some(m2)
+        }
     }
 }
 
@@ -172,7 +201,7 @@ mod tests {
             [9., 8., 7., 6.],
             [5., 4., 3., 2.]
         ];
-        assert_eq!(is_equal(m1, m2), true);
+        assert!(m1.is_equal(m2));
 
         let m3 = [
             [2., 3., 4., 5.],
@@ -180,11 +209,11 @@ mod tests {
             [8., 7., 6., 5.],
             [4., 3., 2., 1.]
         ];
-        assert_eq!(is_equal(m1, m3), false);
+        assert!(!m1.is_equal(m3));
     }
 
     #[test]
-    fn test_multiply_by_matrix() {
+    fn test_multiply_matrix() {
         let m1 = [
             [1., 2., 3., 4.],
             [5., 6., 7., 8.],
@@ -203,7 +232,7 @@ mod tests {
             [40., 58., 110., 102.],
             [16., 26., 46., 42.]
         ];
-        assert_eq!(is_equal(multiply_by_matrix(m1, m2), expected_value), true);
+        assert!(m1.multiply_matrix(m2).is_equal(expected_value));
 
         let m3 = [
             [0., 1., 2., 4.],
@@ -211,7 +240,7 @@ mod tests {
             [2., 4., 8., 16.],
             [4., 8., 16., 32.]
         ];
-        assert_eq!(is_equal(multiply_by_matrix(m3, IDENTITY), m3), true);
+        assert!(m3.multiply_matrix(IDENTITY).is_equal(m3));
     }
 
     #[test]
@@ -224,7 +253,7 @@ mod tests {
         ];
         let t = [1., 2., 3., 1.];
         let expected_value = [18., 24., 33., 1.];
-        assert!(multiply_by_tuple(m, t).is_equal(expected_value));
+        assert!(m.multiply_tuple(t).is_equal(expected_value));
     }
 
     #[test]
@@ -241,7 +270,7 @@ mod tests {
             [3., 0., 5., 5.],
             [0., 8., 3., 8.]
         ];
-        assert_eq!(is_equal(transpose(m), expected_value), true);
+        assert!(m.transpose().is_equal(expected_value));
     }
 
     #[test]
@@ -250,7 +279,7 @@ mod tests {
             [1., 5.],
             [-3., 2.]
         ];
-        assert_eq!(float::is_equal(determinant_2x2(m), 17.), true);
+        assert!(float::is_equal(m.determinant(), 17.));
     }
 
     #[test]
@@ -264,7 +293,7 @@ mod tests {
             [-3., 2.],
             [0., 6.]
         ];
-        assert_eq!(submatrix_3x3(m, 2, 0), expected_value);
+        assert_eq!(m.submatrix(2, 0), expected_value);
     }
 
     #[test]
@@ -280,7 +309,7 @@ mod tests {
             [-8., 8., 6.],
             [-7., -1., 1.]
         ];
-        assert_eq!(submatrix_4x4(m, 1, 2), expected_value);
+        assert_eq!(m.submatrix(1, 2), expected_value);
     }
 
     #[test]
@@ -290,7 +319,7 @@ mod tests {
             [2., -1., -7.],
             [6., -1., 5.]
         ];
-        assert_eq!(float::is_equal(minor_3x3(m, 0, 1), 25.), true);
+        assert!(float::is_equal(m.minor(0, 1), 25.));
     }
 
     #[test]
@@ -300,8 +329,8 @@ mod tests {
             [2., -1., -7.],
             [6., -1., 5.]
         ];
-        assert_eq!(float::is_equal(cofactor_3x3(m, 0, 0), -12.), true);
-        assert_eq!(float::is_equal(cofactor_3x3(m, 0, 1), -25.), true);
+        assert!(float::is_equal(m.cofactor(0, 0), -12.));
+        assert!(float::is_equal(m.cofactor(0, 1), -25.));
     }
 
     #[test]
@@ -311,7 +340,7 @@ mod tests {
             [-5., 8., -4.],
             [2., 6., 4.]
         ];
-        assert_eq!(float::is_equal(determinant_3x3(m), -196.), true);
+        assert!(float::is_equal(m.determinant(), -196.));
     }
 
     #[test]
@@ -322,7 +351,7 @@ mod tests {
             [1., 2., -9., 6.],
             [-6., 7., 7., -9.]
         ];
-        assert_eq!(float::is_equal(determinant_4x4(m), -4071.), true);
+        assert!(float::is_equal(m.determinant(), -4071.));
     }
 
     #[test]
@@ -339,7 +368,7 @@ mod tests {
             [-0.07895, -0.22368, -0.05263, 0.19737],
             [-0.52256, -0.81391, -0.30075, 0.30639]
         ];
-        assert_eq!(is_equal(inverse_4x4(m).unwrap(), expected_value), true);
+        assert!(m.inverse().unwrap().is_equal(expected_value));
 
         let a = [
             [3., -9., 7., 3.],
@@ -353,7 +382,7 @@ mod tests {
             [7., 0., 5., 4.],
             [6., -2., 0., 5.]
         ];
-        let c = multiply_by_matrix(a, b);
-        assert_eq!(is_equal(multiply_by_matrix(c, inverse_4x4(b).unwrap()), a), true);
+        let c = a.multiply_matrix(b);
+        assert!(c.multiply_matrix(b.inverse().unwrap()).is_equal(a));
     }
 }

@@ -1,4 +1,5 @@
 use crate::{matrix, tuple};
+use crate::matrix::Matrix4Methods;
 use crate::tuple::TupleMethods;
 
 #[derive(Debug)]
@@ -21,8 +22,8 @@ impl Ray {
 
     pub fn transform(&self, m: matrix::Matrix4) -> Ray {
         Ray {
-            origin: matrix::multiply_by_tuple(m, self.origin),
-            direction: matrix::multiply_by_tuple(m,self.direction),
+            origin: m.multiply_tuple(self.origin),
+            direction: m.multiply_tuple(self.direction),
         }
     }
 }

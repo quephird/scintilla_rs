@@ -64,6 +64,9 @@ fn main() {
     }
 
     println!("Saving file...");
-    canvas.save("test.ppm");
-    println!("Done!!!");
+    let result = canvas.save("test.ppm");
+    match result {
+        Ok(_) => println!("Done!!!"),
+        Err(_) => println!("Whoops! Something went wrong"),
+    }
 }

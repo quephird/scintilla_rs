@@ -2,6 +2,7 @@ use crate::float;
 use crate::intersection::Intersection;
 use crate::material;
 use crate::matrix;
+use crate::matrix::Matrix4Methods;
 use crate::ray;
 use crate::shape::Shape;
 use crate::tuple;
@@ -24,13 +25,13 @@ impl Sphere {
 
     pub fn set_transform(&mut self, m: matrix::Matrix4) {
         self.transform = m;
-        self.inverse_transform = matrix::inverse_4x4(m).unwrap();
+        self.inverse_transform = m.inverse().unwrap();
     }
 }
 
 impl Shape for Sphere {
     fn intersect(&self, ray: &ray::Ray) -> Vec<Intersection> {
-        let inverse_transform = matrix::inverse_4x4(self.transform).unwrap();
+        let inverse_transform = self.transform.inverse().unwrap();
         let transformed_ray = ray.transform(inverse_transform);
         let sphere_to_ray = transformed_ray.origin.subtract([0., 0., 0., 1.]);
         let a = transformed_ray.direction.dot(transformed_ray.direction);
@@ -51,9 +52,9 @@ impl Shape for Sphere {
     }
 
     fn normal_at(&self, world_point: tuple::Tuple) -> tuple::Tuple {
-        let object_point = matrix::multiply_by_tuple(self.inverse_transform, world_point);
+        let object_point = self.inverse_transform.multiply_tuple(world_point);
         let object_normal = object_point.subtract(Tuple::point(0.,0.,0.));
-        let mut world_normal = matrix::multiply_by_tuple(matrix::transpose(self.inverse_transform), object_normal);
+        let mut world_normal = self.inverse_transform.transpose().multiply_tuple(object_normal);
         world_normal[3] = 0.;
         world_normal.normalize()
     }
@@ -66,7 +67,7 @@ impl Shape for Sphere {
 #[cfg(test)]
 mod tests {
     use std::f64::consts::PI;
-    use crate::matrix::multiply_by_matrix;
+    use crate::matrix::Matrix4Methods;
     use crate::transform;
     use crate::tuple::Tuple;
     use super::*;
@@ -178,7 +179,7 @@ mod tests {
         let mut sphere = Sphere::new();
         let s = transform::scaling(1., 0.5, 1.);
         let rz = transform::rotation_z(PI/5.);
-        let transform = multiply_by_matrix(s, rz);
+        let transform = s.multiply_matrix(rz);
         sphere.set_transform(transform);
         let normal = sphere.normal_at(Tuple::point(0.,0.70711,-0.70711));
         let expected_value = Tuple::vector(0., 0.97014, -0.24254);

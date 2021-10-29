@@ -58,8 +58,8 @@ pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> matrix:
 
 #[cfg(test)]
 mod tests {
-    use crate::matrix;
     use std::f64::consts::PI;
+    use crate::matrix::Matrix4Methods;
     use super::*;
 
     #[test]
@@ -67,11 +67,11 @@ mod tests {
         let p = [-3., 4., 5., 1.];
         let t = translation(5., -3., 2.);
         let expected_value = [2., 1., 7., 1.];
-        assert!(matrix::multiply_by_tuple(t, p).is_equal(expected_value));
+        assert!(t.multiply_tuple(p).is_equal(expected_value));
 
-        let t_inverse = matrix::inverse_4x4(t);
+        let t_inverse = t.inverse();
         let expected_value2 = [-8., 7., 3., 1.];
-        assert!(matrix::multiply_by_tuple(t_inverse.unwrap(), p).is_equal(expected_value2));
+        assert!(t_inverse.unwrap().multiply_tuple(p).is_equal(expected_value2));
     }
 
     #[test]
@@ -79,11 +79,11 @@ mod tests {
         let p = [-4., 6., 8., 1.];
         let s = scaling(2., 3., 4.);
         let expected_value = [-8., 18., 32., 1.];
-        assert!(matrix::multiply_by_tuple(s, p).is_equal(expected_value));
+        assert!(s.multiply_tuple(p).is_equal(expected_value));
 
-        let s_inverse = matrix::inverse_4x4(s);
+        let s_inverse = s.inverse();
         let expected_value2 = [-2., 2., 2., 1.];
-        assert!(matrix::multiply_by_tuple(s_inverse.unwrap(), p).is_equal(expected_value2));
+        assert!(s_inverse.unwrap().multiply_tuple(p).is_equal(expected_value2));
     }
 
     #[test]
@@ -93,10 +93,10 @@ mod tests {
         let full_quarter = rotation_x(PI/2.0);
 
         let expected_value1 = [0., 2.0_f64.sqrt()/2.0, 2.0_f64.sqrt()/2.0, 1.];
-        assert!(matrix::multiply_by_tuple(half_quarter, p).is_equal(expected_value1));
+        assert!(half_quarter.multiply_tuple(p).is_equal(expected_value1));
 
         let expected_value2 = [0., 0., 1., 1.];
-        assert!(matrix::multiply_by_tuple(full_quarter, p).is_equal(expected_value2));
+        assert!(full_quarter.multiply_tuple(p).is_equal(expected_value2));
     }
 
     #[test]
@@ -106,10 +106,10 @@ mod tests {
         let full_quarter = rotation_y(PI/2.0);
 
         let expected_value1 = [2.0_f64.sqrt()/2.0, 0., 2.0_f64.sqrt()/2.0, 1.];
-        assert!(matrix::multiply_by_tuple(half_quarter, p).is_equal(expected_value1));
+        assert!(half_quarter.multiply_tuple(p).is_equal(expected_value1));
 
         let expected_value2 = [1., 0., 0., 1.];
-        assert!(matrix::multiply_by_tuple(full_quarter, p).is_equal(expected_value2));
+        assert!(full_quarter.multiply_tuple(p).is_equal(expected_value2));
     }
 
     #[test]
@@ -119,10 +119,10 @@ mod tests {
         let full_quarter = rotation_z(PI/2.0);
 
         let expected_value1 = [-2.0_f64.sqrt()/2.0, 2.0_f64.sqrt()/2.0, 0., 1.];
-        assert!(matrix::multiply_by_tuple(half_quarter, p).is_equal(expected_value1));
+        assert!(half_quarter.multiply_tuple(p).is_equal(expected_value1));
 
         let expected_value2 = [-1., 0., 0., 1.];
-        assert!(matrix::multiply_by_tuple(full_quarter, p).is_equal(expected_value2));
+        assert!(full_quarter.multiply_tuple(p).is_equal(expected_value2));
     }
 
     #[test]
@@ -130,27 +130,27 @@ mod tests {
         let p = [2., 3., 4., 1.];
         let sxy = shearing(1., 0., 0., 0., 0., 0.);
         let expected_value1 = [5., 3., 4., 1.];
-        assert!(matrix::multiply_by_tuple(sxy, p).is_equal(expected_value1));
+        assert!(sxy.multiply_tuple(p).is_equal(expected_value1));
 
         let sxz = shearing(0., 1., 0., 0., 0., 0.);
         let expected_value2 = [6., 3., 4., 1.];
-        assert!(matrix::multiply_by_tuple(sxz, p).is_equal(expected_value2));
+        assert!(sxz.multiply_tuple(p).is_equal(expected_value2));
 
         let syx = shearing(0., 0., 1., 0., 0., 0.);
         let expected_value3 = [2., 5., 4., 1.];
-        assert!(matrix::multiply_by_tuple(syx, p).is_equal(expected_value3));
+        assert!(syx.multiply_tuple(p).is_equal(expected_value3));
 
         let syz = shearing(0., 0., 0., 1., 0., 0.);
         let expected_value4 = [2., 7., 4., 1.];
-        assert!(matrix::multiply_by_tuple(syz, p).is_equal(expected_value4));
+        assert!(syz.multiply_tuple(p).is_equal(expected_value4));
 
         let szx = shearing(0., 0., 0., 0., 1., 0.);
         let expected_value5 = [2., 3., 6., 1.];
-        assert!(matrix::multiply_by_tuple(szx, p).is_equal(expected_value5));
+        assert!(szx.multiply_tuple(p).is_equal(expected_value5));
 
         let szy = shearing(0., 0., 0., 0., 0., 1.);
         let expected_value6 = [2., 3., 7., 1.];
-        assert!(matrix::multiply_by_tuple(szy, p).is_equal(expected_value6));
+        assert!(szy.multiply_tuple(p).is_equal(expected_value6));
     }
 
     #[test]
@@ -159,8 +159,8 @@ mod tests {
         let r = rotation_x(PI/2.);
         let s = scaling(5., 5., 5.);
         let t = translation(10., 5., 7.);
-        let tsr = matrix::multiply_by_matrix(t, matrix::multiply_by_matrix(s, r));
+        let tsr = t.multiply_matrix(s.multiply_matrix(r));
         let expected_value = [15., 0., 7., 1.];
-        assert!(matrix::multiply_by_tuple(tsr, p).is_equal(expected_value));
+        assert!(tsr.multiply_tuple(p).is_equal(expected_value));
     }
 }
