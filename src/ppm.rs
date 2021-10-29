@@ -53,11 +53,11 @@ impl Saveable for canvas::Canvas {
     }
 
     fn write_color(&self, file: &mut File, current_line: &mut String, c: color::Color) {
-        self.write_color_component(current_line, c[0]);
+        self.write_color_component(current_line, c.r);
         self.write_separator(file, current_line);
-        self.write_color_component( current_line, c[1]);
+        self.write_color_component( current_line, c.g);
         self.write_separator(file, current_line);
-        self.write_color_component( current_line, c[2]);
+        self.write_color_component( current_line, c.b);
     }
 
     fn write_pixel_row(&self, file: &mut File, y: usize) {
@@ -88,14 +88,15 @@ impl Saveable for canvas::Canvas {
 
 #[cfg(test)]
 mod tests {
+    use crate::color::Color;
     use super::*;
 
     #[test]
     fn test_save_with_tiny_canvas() -> Result<(), Error> {
         let mut canvas = canvas::Canvas::new(5, 3);
-        let c1 = [1.5, 0.0, 0.0];
-        let c2 = [0.0, 0.5, 0.0];
-        let c3 = [-0.5, 0.0, 1.0];
+        let c1 = Color::new(1.5, 0.0, 0.0);
+        let c2 = Color::new(0.0, 0.5, 0.0);
+        let c3 = Color::new(-0.5, 0.0, 1.0);
         canvas.set_pixel(0, 0, c1);
         canvas.set_pixel(2, 1, c2);
         canvas.set_pixel(4, 2, c3);
@@ -123,7 +124,7 @@ P3
         let h = 2;
         let mut canvas = canvas::Canvas::new(w, h);
 
-        let c = [1.0, 0.8, 0.6];
+        let c = Color::new(1.0, 0.8, 0.6);
         for y in 0..h {
             for x in 0..w {
                 canvas.set_pixel(x, y, c);

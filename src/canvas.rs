@@ -1,6 +1,6 @@
 use crate::color;
+use crate::color::Color;
 
-#[derive(Debug)]
 pub struct Canvas {
     pub width: usize,
     pub height: usize,
@@ -12,7 +12,7 @@ impl Canvas {
         Canvas {
             width: w,
             height: h,
-            pixels: vec![[0.0, 0.0, 0.0]; w*h]
+            pixels: vec![color::BLACK; w*h]
         }
     }
 
@@ -32,16 +32,16 @@ mod tests {
     #[test]
     fn test_new() {
         let canvas = Canvas::new(10, 20);
-        assert_eq!(color::is_equal(canvas.get_pixel(0, 0), [0.0, 0.0, 0.0]), true);
-        assert_eq!(color::is_equal(canvas.get_pixel(5, 5), [0.0, 0.0, 0.0]), true);
-        assert_eq!(color::is_equal(canvas.get_pixel(9, 9), [0.0, 0.0, 0.0]), true);
+        assert!(canvas.get_pixel(0, 0).is_equal(color::BLACK));
+        assert!(canvas.get_pixel(5, 5).is_equal(color::BLACK));
+        assert!(canvas.get_pixel(9, 9).is_equal(color::BLACK));
     }
 
     #[test]
     fn test_set_pixel() {
         let mut canvas = Canvas::new(10, 20);
-        let red = [1., 0., 0.];
+        let red = color::Color::new(1., 0., 0.);
         canvas.set_pixel(2, 3, red);
-        assert_eq!(color::is_equal(canvas.get_pixel(2, 3), red), true);
+        assert!(canvas.get_pixel(2, 3).is_equal(red));
     }
 }

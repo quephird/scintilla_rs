@@ -1,3 +1,4 @@
+use crate::color::Color;
 use crate::light::Light;
 use crate::ppm::Saveable;
 use crate::shape::Shape;
@@ -26,10 +27,10 @@ fn main() {
 
     let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
     let mut shape = sphere::Sphere::new();
-    shape.material.color = [1., 0.2, 1.];
+    shape.material.color = Color::new(1., 0.2, 1.);
 
     let light_position = tuple::point(-10., 10., -10.);
-    let light_color = [1., 1., 1.];
+    let light_color = Color::new(1., 1., 1.);
     let light = Light::new(light_position, light_color);
 
     // For each row of pixels in the canvas

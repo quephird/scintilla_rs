@@ -10,7 +10,7 @@ pub struct Material {
 }
 
 pub const DEFAULT_MATERIAL:Material = Material {
-    color: [1., 1., 1.],
+    color: color::WHITE,
     ambient: 0.1,
     diffuse: 0.9,
     specular: 0.9,
@@ -28,7 +28,7 @@ impl Material {
                     eye: tuple::Tuple,
                     normal: tuple::Tuple) -> color::Color {
         // Combine the surface color with the light's color/intensity
-        let effective_color = color::hadamard(self.color, light.intensity);
+        let effective_color = self.color.hadamard(light.intensity);
 
         // Find the direction to the light source
         let light_vector = tuple::normalize(tuple::subtract(light.position, point));
@@ -38,7 +38,7 @@ impl Material {
         // light is on the other side of the surface.
         let light_dot_normal = tuple::dot(light_vector, normal);
 
-        let ambient = color::multiply(effective_color, self.ambient);
+        let ambient = effective_color.multiply(self.ambient);
         let diffuse: color::Color;
         let specular: color::Color;
 
@@ -47,7 +47,7 @@ impl Material {
             specular = color::BLACK;
         } else {
             // Compute the diffuse contribution
-            diffuse = color::multiply(effective_color, self.diffuse * light_dot_normal);
+            diffuse = effective_color.multiply(self.diffuse * light_dot_normal);
             // reflect_dot_eye represents the cosine of the angle between the
             // reflection vector and the eye vector. A negative number means the
             // light reflects away from the eye.
@@ -59,17 +59,18 @@ impl Material {
             } else {
                 // Compute the specular contribution
                 let factor = reflected_dot_eye.powf(self.shininess);
-                specular = color::multiply(light.intensity,self.specular * factor);
+                specular = light.intensity.multiply(self.specular * factor);
             }
         }
 
         // Add the three contributions together to get the final shading
-        color::add(color::add(ambient, diffuse), specular)
+        ambient.add(diffuse).add(specular)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::color::Color;
     use super::*;
 
     #[test]
@@ -78,9 +79,9 @@ mod tests {
         let position = tuple::point(0., 0., 0.);
         let eye = tuple::vector(0., 0., -1.);
         let normal = tuple::vector(0., 0., -1.);
-        let light = light::Light::new(tuple::point(0., 0., -10.), [1., 1., 1.]);
+        let light = light::Light::new(tuple::point(0., 0., -10.), color::WHITE);
         let color = material.lighting(&light, position, eye, normal);
-        assert!(color::is_equal(color, [1.9, 1.9, 1.9]));
+        assert!(color.is_equal(Color::new(1.9, 1.9, 1.9)));
     }
 
     #[test]
@@ -89,9 +90,9 @@ mod tests {
         let position = tuple::point(0., 0., 0.);
         let eye = tuple::vector(0., 2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.);
         let normal = tuple::vector(0., 0., -1.);
-        let light = light::Light::new(tuple::point(0., 0., -10.), [1., 1., 1.]);
+        let light = light::Light::new(tuple::point(0., 0., -10.), color::WHITE);
         let color = material.lighting(&light, position, eye, normal);
-        assert!(color::is_equal(color, [1.0, 1.0, 1.0]));
+        assert!(color.is_equal(Color::new(1.0, 1.0, 1.0)));
     }
 
     #[test]
@@ -100,9 +101,9 @@ mod tests {
         let position = tuple::point(0., 0., 0.);
         let eye = tuple::vector(0., 0., -1.);
         let normal = tuple::vector(0., 0., -1.);
-        let light = light::Light::new(tuple::point(0., 10., -10.), [1., 1., 1.]);
+        let light = light::Light::new(tuple::point(0., 10., -10.), color::WHITE);
         let color = material.lighting(&light, position, eye, normal);
-        assert!(color::is_equal(color, [0.7364, 0.7364, 0.7364]));
+        assert!(color.is_equal(Color::new(0.7364, 0.7364, 0.7364)));
     }
 
     #[test]
@@ -111,9 +112,9 @@ mod tests {
         let position = tuple::point(0., 0., 0.);
         let eye = tuple::vector(0., -2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.);
         let normal = tuple::vector(0., 0., -1.);
-        let light = light::Light::new(tuple::point(0., 10., -10.), [1., 1., 1.]);
+        let light = light::Light::new(tuple::point(0., 10., -10.), color::WHITE);
         let color = material.lighting(&light, position, eye, normal);
-        assert!(color::is_equal(color, [1.6364, 1.6364, 1.6364]));
+        assert!(color.is_equal(Color::new(1.6364, 1.6364, 1.6364)));
     }
 
     #[test]
@@ -122,8 +123,8 @@ mod tests {
         let position = tuple::point(0., 0., 0.);
         let eye = tuple::vector(0., 0., -1.);
         let normal = tuple::vector(0., 0., -1.);
-        let light = light::Light::new(tuple::point(0., 0., 10.), [1., 1., 1.]);
+        let light = light::Light::new(tuple::point(0., 0., 10.), color::WHITE);
         let color = material.lighting(&light, position, eye, normal);
-        assert!(color::is_equal(color, [0.1, 0.1, 0.1]));
+        assert!(color.is_equal(Color::new(0.1, 0.1, 0.1)));
     }
 }
