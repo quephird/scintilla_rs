@@ -1,5 +1,4 @@
 use crate::color;
-use crate::color::Color;
 
 pub struct Canvas {
     pub width: usize,

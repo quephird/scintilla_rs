@@ -5,6 +5,7 @@ use crate::matrix;
 use crate::ray;
 use crate::shape::Shape;
 use crate::tuple;
+use crate::tuple::{Tuple, TupleMethods};
 
 pub struct Sphere {
     pub transform: matrix::Matrix4,
@@ -31,10 +32,10 @@ impl Shape for Sphere {
     fn intersect(&self, ray: &ray::Ray) -> Vec<Intersection> {
         let inverse_transform = matrix::inverse_4x4(self.transform).unwrap();
         let transformed_ray = ray.transform(inverse_transform);
-        let sphere_to_ray = tuple::subtract(transformed_ray.origin, [0., 0., 0., 1.]);
-        let a = tuple::dot(transformed_ray.direction, transformed_ray.direction);
-        let b = 2. * tuple::dot(transformed_ray.direction, sphere_to_ray);
-        let c = tuple::dot(sphere_to_ray, sphere_to_ray) - 1.;
+        let sphere_to_ray = transformed_ray.origin.subtract([0., 0., 0., 1.]);
+        let a = transformed_ray.direction.dot(transformed_ray.direction);
+        let b = 2. * transformed_ray.direction.dot(sphere_to_ray);
+        let c = sphere_to_ray.dot(sphere_to_ray) - 1.;
         let discriminant = b*b - 4.*a*c;
 
         if discriminant < 0. {
@@ -51,10 +52,10 @@ impl Shape for Sphere {
 
     fn normal_at(&self, world_point: tuple::Tuple) -> tuple::Tuple {
         let object_point = matrix::multiply_by_tuple(self.inverse_transform, world_point);
-        let object_normal = tuple::subtract(object_point, tuple::point(0.,0.,0.));
+        let object_normal = object_point.subtract(Tuple::point(0.,0.,0.));
         let mut world_normal = matrix::multiply_by_tuple(matrix::transpose(self.inverse_transform), object_normal);
         world_normal[3] = 0.;
-        tuple::normalize(world_normal)
+        world_normal.normalize()
     }
 
     fn get_material(&self) -> material::Material {
@@ -67,6 +68,7 @@ mod tests {
     use std::f64::consts::PI;
     use crate::matrix::multiply_by_matrix;
     use crate::transform;
+    use crate::tuple::Tuple;
     use super::*;
 
     #[test]
@@ -137,38 +139,38 @@ mod tests {
     #[test]
     fn test_normal_at_point_on_x_axis() {
         let s = Sphere::new();
-        let normal = s.normal_at(tuple::point(1., 0., 0.));
-        assert!(tuple::is_equal(normal, tuple::vector(1., 0., 0.)));
+        let normal = s.normal_at(Tuple::point(1., 0., 0.));
+        assert!(normal.is_equal(Tuple::vector(1., 0., 0.)));
     }
 
     #[test]
     fn test_normal_at_point_on_y_axis() {
         let s = Sphere::new();
-        let normal = s.normal_at(tuple::point(0., 1., 0.));
-        assert!(tuple::is_equal(normal, tuple::vector(0., 1., 0.)));
+        let normal = s.normal_at(Tuple::point(0., 1., 0.));
+        assert!(normal.is_equal(Tuple::vector(0., 1., 0.)));
     }
 
     #[test]
     fn test_normal_at_point_on_z_axis() {
         let s = Sphere::new();
-        let normal = s.normal_at(tuple::point(0., 0., 1.));
-        assert!(tuple::is_equal(normal, tuple::vector(0., 0., 1.)));
+        let normal = s.normal_at(Tuple::point(0., 0., 1.));
+        assert!(normal.is_equal(Tuple::vector(0., 0., 1.)));
     }
 
     #[test]
     fn test_normal_at_nonaxial_point() {
         let s = Sphere::new();
-        let normal = s.normal_at(tuple::point(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.));
-        assert!(tuple::is_equal(normal, tuple::vector(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.)));
+        let normal = s.normal_at(Tuple::point(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.));
+        assert!(normal.is_equal(Tuple::vector(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.)));
     }
 
     #[test]
     fn test_normal_at_for_translated_sphere() {
         let mut s = Sphere::new();
         s.set_transform(transform::translation(0.,1.,0.));
-        let normal = s.normal_at(tuple::point(0.,1.70711,-0.70711));
-        let expected_value = tuple::vector(0.,0.70711,-0.70711);
-        assert!(tuple::is_equal(normal, expected_value));
+        let normal = s.normal_at(Tuple::point(0.,1.70711,-0.70711));
+        let expected_value = Tuple::vector(0.,0.70711,-0.70711);
+        assert!(normal.is_equal(expected_value));
     }
 
     #[test]
@@ -178,8 +180,8 @@ mod tests {
         let rz = transform::rotation_z(PI/5.);
         let transform = multiply_by_matrix(s, rz);
         sphere.set_transform(transform);
-        let normal = sphere.normal_at(tuple::point(0.,0.70711,-0.70711));
-        let expected_value = tuple::vector(0., 0.97014, -0.24254);
-        assert!(tuple::is_equal(normal, expected_value));
+        let normal = sphere.normal_at(Tuple::point(0.,0.70711,-0.70711));
+        let expected_value = Tuple::vector(0., 0.97014, -0.24254);
+        assert!(normal.is_equal(expected_value));
     }
 }

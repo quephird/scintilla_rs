@@ -1,5 +1,6 @@
 use crate::float;
 use crate::tuple;
+use crate::tuple::TupleMethods;
 
 type Matrix2 = [[f64; 2]; 2];
 type Matrix3 = [[f64; 3]; 3];
@@ -27,7 +28,7 @@ pub fn multiply_by_matrix(m1: Matrix4, m2: Matrix4) -> Matrix4 {
     let mut m3: Matrix4 = [[0.; 4]; 4];
     for r in 0..4 {
         for c in 0..4 {
-            m3[r][c] = tuple::dot(m1[r], [m2[0][c], m2[1][c], m2[2][c], m2[3][c]]);
+            m3[r][c] = m1[r].dot([m2[0][c], m2[1][c], m2[2][c], m2[3][c]]);
         }
     }
     m3
@@ -36,7 +37,7 @@ pub fn multiply_by_matrix(m1: Matrix4, m2: Matrix4) -> Matrix4 {
 pub fn multiply_by_tuple(m: Matrix4, t: tuple::Tuple) -> tuple::Tuple {
     let mut t2: tuple::Tuple = [0.; 4];
     for r in 0..4 {
-        t2[r] = tuple::dot(m[r], t);
+        t2[r] = m[r].dot(t);
     }
     t2
 }
@@ -154,6 +155,7 @@ pub fn inverse_4x4(m: Matrix4) -> Option<Matrix4> {
 
 #[cfg(test)]
 mod tests {
+    use crate::tuple::TupleMethods;
     use super::*;
 
     #[test]
@@ -222,7 +224,7 @@ mod tests {
         ];
         let t = [1., 2., 3., 1.];
         let expected_value = [18., 24., 33., 1.];
-        assert_eq!(tuple::is_equal(multiply_by_tuple(m, t), expected_value), true);
+        assert!(multiply_by_tuple(m, t).is_equal(expected_value));
     }
 
     #[test]

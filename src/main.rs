@@ -2,6 +2,8 @@ use crate::color::Color;
 use crate::light::Light;
 use crate::ppm::Saveable;
 use crate::shape::Shape;
+use crate::tuple::Tuple;
+use crate::tuple::TupleMethods;
 
 mod canvas;
 mod color;
@@ -29,7 +31,7 @@ fn main() {
     let mut shape = sphere::Sphere::new();
     shape.material.color = Color::new(1., 0.2, 1.);
 
-    let light_position = tuple::point(-10., 10., -10.);
+    let light_position = Tuple::point(-10., 10., -10.);
     let light_color = Color::new(1., 1., 1.);
     let light = Light::new(light_position, light_color);
 
@@ -44,7 +46,7 @@ fn main() {
             let world_x = -half + pixel_size * x as f64;
             // Describe the point on the wall that the ray will target
             let position = [world_x, world_y, wall_z, 1.0];
-            let direction = tuple::normalize(tuple::subtract(position, ray_origin));
+            let direction = position.subtract(ray_origin).normalize();
 
             let ray = ray::Ray::new(ray_origin, direction);
             let mut intersections = shape.intersect(&ray);
@@ -52,7 +54,7 @@ fn main() {
                 Some(hit) => {
                     let point = ray.position_at(hit.t);
                     let normal = hit.object.normal_at(point);
-                    let eye = tuple::negate(ray.direction);
+                    let eye = ray.direction.negate();
                     let color = hit.object.get_material().lighting(&light, point, eye, normal);
                     canvas.set_pixel(x, y, color);
                 },
