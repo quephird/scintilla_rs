@@ -1,6 +1,7 @@
 use crate::color::Color;
 use crate::intersection::{Computations, Intersection};
 use crate::{color, intersection, light};
+use crate::light::Light;
 use crate::object::Object;
 use crate::ray;
 
@@ -10,6 +11,13 @@ pub struct World {
 }
 
 impl World {
+    pub fn new(light: Light, objects: Vec<Object>) -> World {
+        World {
+            light: light,
+            objects: objects,
+        }
+    }
+
     pub fn intersect(&self, ray: &ray::Ray) -> Vec<Intersection> {
         let mut all_intersections: Vec<Intersection> = vec![];
         for object in self.objects.iter() {

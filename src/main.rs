@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+use crate::camera::Camera;
 use crate::color::Color;
 use crate::light::Light;
 use crate::material::Material;
@@ -6,7 +8,9 @@ use crate::ppm::Saveable;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 use crate::tuple::TupleMethods;
+use crate::world::World;
 
+mod camera;
 mod canvas;
 mod color;
 mod float;
@@ -24,14 +28,11 @@ mod object;
 mod world;
 
 fn main() {
-    let ray_origin = [0., 0., -5., 1.];
-    let wall_z = 10.;
-    let wall_size = 7.;
-    let half = wall_size / 2.;
-    let canvas_pixels = 500;
-    let pixel_size = wall_size / canvas_pixels as f64;
+    let light = Light::new(
+        Tuple::point(-10., 10., -10.),
+        Color::new(1., 1., 1.),
+    );
 
-    let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
     let material = Material {
         color: Color::new(1., 0.2, 1.),
         ambient: 0.1,
@@ -39,42 +40,21 @@ fn main() {
         specular: 0.9,
         shininess: 200.0,
     };
-    let shape = Object::Sphere(Sphere::new(
+    let sphere = Object::Sphere(Sphere::new(
         matrix::IDENTITY,
         material,
     ));
 
-    let light_position = Tuple::point(-10., 10., -10.);
-    let light_color = Color::new(1., 1., 1.);
-    let light = Light::new(light_position, light_color);
+    let world = World::new(light, vec![sphere]);
 
-    // For each row of pixels in the canvas
+    let from = Tuple::point(0., 1.5, -5.);
+    let to = Tuple::point(0., 1., 0.);
+    let up = Tuple::vector(0., 1., 0.);
+    let view = transform::view(from, to, up);
+    let camera = Camera::new(view, 500, 500, PI/3.);
+
     println!("Rendering scene...");
-    for y in 0..canvas.height {
-        // Compute the world y coordinate (top = +half, bottom = -half)
-        let world_y = half - pixel_size * y as f64;
-        // For each pixel in the row
-        for x in 0..canvas.width {
-            // Compute the world x coordinate (left = -half, right = half)
-            let world_x = -half + pixel_size * x as f64;
-            // Describe the point on the wall that the ray will target
-            let position = [world_x, world_y, wall_z, 1.0];
-            let direction = position.subtract(ray_origin).normalize();
-
-            let ray = ray::Ray::new(ray_origin, direction);
-            let mut intersections = shape.intersect(&ray);
-            match intersection::hit(&mut intersections) {
-                Some(hit) => {
-                    let point = ray.position_at(hit.t);
-                    let normal = hit.object.normal_at(point);
-                    let eye = ray.direction.negate();
-                    let color = hit.object.get_material().lighting(&light, point, eye, normal);
-                    canvas.set_pixel(x, y, color);
-                },
-                None => ()
-            }
-        }
-    }
+    let canvas = camera.render(world);
 
     println!("Saving file...");
     let result = canvas.save("test.ppm");
