@@ -1,4 +1,3 @@
-use crate::intersection::Intersection;
 use crate::{material, ray, tuple};
 
 pub trait Shape {

@@ -1,7 +1,5 @@
 use crate::object::Object;
 use crate::ray::Ray;
-use crate::shape::Shape;
-use crate::sphere;
 use crate::tuple::Tuple;
 use crate::tuple::TupleMethods;
 

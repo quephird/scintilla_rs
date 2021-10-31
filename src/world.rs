@@ -3,8 +3,6 @@ use crate::intersection::{Computations, Intersection};
 use crate::light;
 use crate::object::Object;
 use crate::ray;
-use crate::shape;
-use crate::shape::Shape;
 
 pub struct World {
     pub light: light::Light,
@@ -44,7 +42,6 @@ mod tests {
     use crate::material;
     use crate::object::Object;
     use crate::ray::Ray;
-    use crate::shape::Shape;
     use crate::sphere;
     use crate::transform;
     use crate::tuple;

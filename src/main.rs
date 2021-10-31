@@ -3,7 +3,6 @@ use crate::light::Light;
 use crate::material::Material;
 use crate::object::Object;
 use crate::ppm::Saveable;
-use crate::shape::Shape;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 use crate::tuple::TupleMethods;

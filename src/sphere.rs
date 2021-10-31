@@ -1,10 +1,8 @@
 use crate::float;
-use crate::intersection::Intersection;
 use crate::material;
 use crate::material::Material;
 use crate::matrix;
 use crate::matrix::{Matrix4, Matrix4Methods};
-use crate::object::Object;
 use crate::ray;
 use crate::shape::Shape;
 use crate::tuple;
