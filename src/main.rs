@@ -22,6 +22,7 @@ mod sphere;
 mod transform;
 mod tuple;
 mod object;
+mod world;
 
 fn main() {
     let ray_origin = [0., 0., -5., 1.];
