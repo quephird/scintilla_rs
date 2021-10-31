@@ -1,14 +1,9 @@
 use std::f64::consts::PI;
+
 use crate::camera::Camera;
-use crate::color::Color;
-use crate::light::Light;
-use crate::material::Material;
-use crate::object::Object;
 use crate::ppm::Saveable;
-use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 use crate::tuple::TupleMethods;
-use crate::world::World;
 
 mod camera;
 mod canvas;
@@ -26,26 +21,10 @@ mod transform;
 mod tuple;
 mod object;
 mod world;
+mod examples;
 
 fn main() {
-    let light = Light::new(
-        Tuple::point(-10., 10., -10.),
-        Color::new(1., 1., 1.),
-    );
-
-    let material = Material {
-        color: Color::new(1., 0.2, 1.),
-        ambient: 0.1,
-        diffuse: 0.9,
-        specular: 0.9,
-        shininess: 200.0,
-    };
-    let sphere = Object::Sphere(Sphere::new(
-        matrix::IDENTITY,
-        material,
-    ));
-
-    let world = World::new(light, vec![sphere]);
+    let world = examples::chapter_seven_scene();
 
     let from = Tuple::point(0., 1.5, -5.);
     let to = Tuple::point(0., 1., 0.);

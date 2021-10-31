@@ -1,7 +1,7 @@
 use crate::{color, light, tuple};
 use crate::tuple::TupleMethods;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Material {
     pub color: color::Color,
     pub ambient: f64,
