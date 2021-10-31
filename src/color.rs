@@ -1,6 +1,6 @@
 use crate::float;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Color {
     pub r: f64,
     pub g: f64,
@@ -30,11 +30,17 @@ impl Color {
     pub fn hadamard(&self, other: Color) -> Color {
         Color::new(self.r * other.r, self.g * other.g, self.b * other.b)
     }
+}
 
-    pub fn is_equal(&self, other: Color) -> bool {
+impl PartialEq for Color {
+    fn eq(&self, other: &Color) -> bool {
         float::is_equal(self.r, other.r) &&
             float::is_equal(self.g, other.g) &&
             float::is_equal(self.b, other.b)
+    }
+
+    fn ne(&self, other: &Color) -> bool {
+        !self.eq(other)
     }
 }
 
@@ -46,26 +52,26 @@ mod tests {
     fn test_add() {
         let c1 = Color::new(0.9, 0.6, 0.75);
         let c2 = Color::new(0.7, 0.1, 0.25);
-        assert!(c1.add(c2).is_equal(Color::new(1.6, 0.7, 1.)));
+        assert_eq!(c1.add(c2), Color::new(1.6, 0.7, 1.));
     }
 
     #[test]
     fn test_subtract() {
         let c1 = Color::new(0.9, 0.6, 0.75);
         let c2 = Color::new(0.7, 0.1, 0.25);
-        assert!(c1.subtract(c2).is_equal(Color::new(0.2, 0.5, 0.5)));
+        assert_eq!(c1.subtract(c2), Color::new(0.2, 0.5, 0.5));
     }
 
     #[test]
     fn test_multiply() {
         let c = Color::new(0.2, 0.3, 0.4);
-        assert!(c.multiply(2.).is_equal(Color::new(0.4, 0.6, 0.8)));
+        assert_eq!(c.multiply(2.), Color::new(0.4, 0.6, 0.8));
     }
 
     #[test]
     fn test_hadamard() {
         let c1 = Color::new(1., 0.2, 0.4);
         let c2 = Color::new(0.9, 1., 0.1);
-        assert!(c1.hadamard(c2).is_equal(Color::new(0.9, 0.2, 0.04)));
+        assert_eq!(c1.hadamard(c2), Color::new(0.9, 0.2, 0.04));
     }
 }

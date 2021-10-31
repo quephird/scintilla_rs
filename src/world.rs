@@ -106,7 +106,7 @@ mod tests {
         let intersection = Intersection::new(4., shape);
         let computations = intersection.prepare_computations(ray);
         let color = world.shade_hit(computations);
-        assert!(color.is_equal(Color::new(0.38066, 0.47583, 0.2855)));
+        assert_eq!(color, Color::new(0.38066, 0.47583, 0.2855));
     }
 
     #[test]
@@ -125,6 +125,6 @@ mod tests {
         let intersection = Intersection::new(0.5, shape);
         let computations = intersection.prepare_computations(ray);
         let color = world.shade_hit(computations);
-        assert!(color.is_equal(Color::new(0.90498, 0.90498, 0.90498)));
+        assert_eq!(color, Color::new(0.90498, 0.90498, 0.90498));
     }
 }

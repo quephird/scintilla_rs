@@ -31,9 +31,9 @@ mod tests {
     #[test]
     fn test_new() {
         let canvas = Canvas::new(10, 20);
-        assert!(canvas.get_pixel(0, 0).is_equal(color::BLACK));
-        assert!(canvas.get_pixel(5, 5).is_equal(color::BLACK));
-        assert!(canvas.get_pixel(9, 9).is_equal(color::BLACK));
+        assert_eq!(canvas.get_pixel(0, 0), color::BLACK);
+        assert_eq!(canvas.get_pixel(5, 5), color::BLACK);
+        assert_eq!(canvas.get_pixel(9, 9), color::BLACK);
     }
 
     #[test]
@@ -41,6 +41,6 @@ mod tests {
         let mut canvas = Canvas::new(10, 20);
         let red = color::Color::new(1., 0., 0.);
         canvas.set_pixel(2, 3, red);
-        assert!(canvas.get_pixel(2, 3).is_equal(red));
+        assert_eq!(canvas.get_pixel(2, 3), red);
     }
 }
