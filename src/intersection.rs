@@ -17,7 +17,7 @@ impl Intersection<'_> {
         }
     }
 
-    pub fn prepare_computations(&self, ray: Ray) -> Computations {
+    pub fn prepare_computations(&self, ray: &Ray) -> Computations {
         let point = ray.position_at(self.t);
         let eye = ray.direction.negate();
         let mut normal = self.object.normal_at(point);
@@ -130,7 +130,7 @@ mod tests {
             material::DEFAULT_MATERIAL,
         ));
         let intersection = Intersection::new(4., &s);
-        let computations = intersection.prepare_computations(ray);
+        let computations = intersection.prepare_computations(&ray);
         assert_eq!(computations.t, intersection.t);
         assert!(computations.point.is_equal(Tuple::point(0., 0., -1.)));
         assert!(computations.eye.is_equal(Tuple::vector(0., 0., -1.)));
@@ -149,7 +149,7 @@ mod tests {
             material::DEFAULT_MATERIAL,
         ));
         let intersection = Intersection::new(1., &s);
-        let computations = intersection.prepare_computations(ray);
+        let computations = intersection.prepare_computations(&ray);
         assert_eq!(computations.t, intersection.t);
         assert!(computations.point.is_equal(Tuple::point(0., 0., 1.)));
         assert!(computations.eye.is_equal(Tuple::vector(0., 0., -1.)));
