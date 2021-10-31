@@ -1,8 +1,9 @@
 use crate::float;
 use crate::intersection::Intersection;
 use crate::material;
+use crate::material::Material;
 use crate::matrix;
-use crate::matrix::Matrix4Methods;
+use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::ray;
 use crate::shape::Shape;
 use crate::tuple;
@@ -15,11 +16,11 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new() -> Sphere {
+    pub fn new(transform: Matrix4, material: Material) -> Sphere {
         Sphere {
-            transform: matrix::IDENTITY,
-            inverse_transform: matrix::IDENTITY,
-            material: material::DEFAULT_MATERIAL,
+            transform: transform,
+            inverse_transform: transform.inverse().unwrap(),
+            material: material,
         }
     }
 
@@ -75,7 +76,10 @@ mod tests {
     #[test]
     fn test_intersect_miss() {
         let ray = ray::Ray::new([0., 2., -5., 1.], [0., 0., 1., 0.]);
-        let sphere = Sphere::new();
+        let sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 0);
@@ -84,7 +88,10 @@ mod tests {
     #[test]
     fn test_intersect_tangent() {
         let ray = ray::Ray::new([0., 1., -5., 1.], [0., 0., 1., 0.]);
-        let sphere = Sphere::new();
+        let sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 1);
@@ -94,7 +101,10 @@ mod tests {
     #[test]
     fn test_intersect_inside() {
         let ray = ray::Ray::new([0., 0., 0., 1.], [0., 0., 1., 0.]);
-        let sphere = Sphere::new();
+        let sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 2);
@@ -105,7 +115,10 @@ mod tests {
     #[test]
     fn test_intersect_behind() {
         let ray = ray::Ray::new([0., 0., 5., 1.], [0., 0., 1., 0.]);
-        let sphere = Sphere::new();
+        let sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 2);
@@ -116,7 +129,10 @@ mod tests {
     #[test]
     fn test_intersect_scaled() {
         let ray = ray::Ray::new([0., 0., -5., 1.], [0., 0., 1., 0.]);
-        let mut sphere = Sphere::new();
+        let mut sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let transform = transform::scaling(2., 2., 2.);
         sphere.set_transform(transform);
 
@@ -129,7 +145,10 @@ mod tests {
     #[test]
     fn test_intersect_translated() {
         let ray = ray::Ray::new([0., 0., -5., 1.], [0., 0., 1., 0.]);
-        let mut sphere = Sphere::new();
+        let mut sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let transform = transform::translation(5., 0., 0.);
         sphere.set_transform(transform);
 
@@ -139,35 +158,50 @@ mod tests {
 
     #[test]
     fn test_normal_at_point_on_x_axis() {
-        let s = Sphere::new();
+        let s = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let normal = s.normal_at(Tuple::point(1., 0., 0.));
         assert!(normal.is_equal(Tuple::vector(1., 0., 0.)));
     }
 
     #[test]
     fn test_normal_at_point_on_y_axis() {
-        let s = Sphere::new();
+        let s = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let normal = s.normal_at(Tuple::point(0., 1., 0.));
         assert!(normal.is_equal(Tuple::vector(0., 1., 0.)));
     }
 
     #[test]
     fn test_normal_at_point_on_z_axis() {
-        let s = Sphere::new();
+        let s = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let normal = s.normal_at(Tuple::point(0., 0., 1.));
         assert!(normal.is_equal(Tuple::vector(0., 0., 1.)));
     }
 
     #[test]
     fn test_normal_at_nonaxial_point() {
-        let s = Sphere::new();
+        let s = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let normal = s.normal_at(Tuple::point(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.));
         assert!(normal.is_equal(Tuple::vector(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.)));
     }
 
     #[test]
     fn test_normal_at_for_translated_sphere() {
-        let mut s = Sphere::new();
+        let mut s = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         s.set_transform(transform::translation(0.,1.,0.));
         let normal = s.normal_at(Tuple::point(0.,1.70711,-0.70711));
         let expected_value = Tuple::vector(0.,0.70711,-0.70711);
@@ -176,7 +210,10 @@ mod tests {
 
     #[test]
     fn test_normal_at_for_transformed_sphere() {
-        let mut sphere = Sphere::new();
+        let mut sphere = Sphere::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
         let s = transform::scaling(1., 0.5, 1.);
         let rz = transform::rotation_z(PI/5.);
         let transform = s.multiply_matrix(rz);

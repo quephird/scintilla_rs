@@ -2,6 +2,7 @@ use crate::color::Color;
 use crate::light::Light;
 use crate::ppm::Saveable;
 use crate::shape::Shape;
+use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 use crate::tuple::TupleMethods;
 
@@ -18,6 +19,7 @@ mod shape;
 mod sphere;
 mod transform;
 mod tuple;
+mod object;
 
 fn main() {
     let ray_origin = [0., 0., -5., 1.];
@@ -28,7 +30,10 @@ fn main() {
     let pixel_size = wall_size / canvas_pixels as f64;
 
     let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
-    let mut shape = sphere::Sphere::new();
+    let mut shape = Sphere::new(
+        matrix::IDENTITY,
+        material::DEFAULT_MATERIAL,
+    );
     shape.material.color = Color::new(1., 0.2, 1.);
 
     let light_position = Tuple::point(-10., 10., -10.);
