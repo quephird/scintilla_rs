@@ -4,6 +4,7 @@ use crate::material;
 use crate::material::Material;
 use crate::matrix;
 use crate::matrix::{Matrix4, Matrix4Methods};
+use crate::object::Object;
 use crate::ray;
 use crate::shape::Shape;
 use crate::tuple;
@@ -31,7 +32,7 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &ray::Ray) -> Vec<Intersection> {
+    fn intersect(&self, ray: &ray::Ray) -> Vec<f64> {
         let inverse_transform = self.transform.inverse().unwrap();
         let transformed_ray = ray.transform(inverse_transform);
         let sphere_to_ray = transformed_ray.origin.subtract([0., 0., 0., 1.]);
@@ -43,12 +44,9 @@ impl Shape for Sphere {
         if discriminant < 0. {
             vec![]
         } else if discriminant == 0. {
-            let i = Intersection::new(-b/2./a, self);
-            vec![i]
+            vec![-b/2./a]
         } else {
-            let i1 = Intersection::new((-b - discriminant.sqrt())/2./a, self);
-            let i2 = Intersection::new((-b + discriminant.sqrt())/2./a, self);
-            vec![i1, i2]
+            vec![(-b - discriminant.sqrt())/2./a, (-b + discriminant.sqrt())/2./a,]
         }
     }
 
@@ -95,7 +93,7 @@ mod tests {
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 1);
-        assert_eq!(float::is_equal(intersections[0].t, 5.), true);
+        assert_eq!(float::is_equal(intersections[0], 5.), true);
     }
 
     #[test]
@@ -108,8 +106,8 @@ mod tests {
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 2);
-        assert_eq!(float::is_equal(intersections[0].t, -1.), true);
-        assert_eq!(float::is_equal(intersections[1].t, 1.), true);
+        assert_eq!(float::is_equal(intersections[0], -1.), true);
+        assert_eq!(float::is_equal(intersections[1], 1.), true);
     }
 
     #[test]
@@ -122,8 +120,8 @@ mod tests {
         let intersections = sphere.intersect(&ray);
 
         assert_eq!(intersections.len(), 2);
-        assert_eq!(float::is_equal(intersections[0].t, -6.), true);
-        assert_eq!(float::is_equal(intersections[1].t, -4.), true);
+        assert_eq!(float::is_equal(intersections[0], -6.), true);
+        assert_eq!(float::is_equal(intersections[1], -4.), true);
     }
 
     #[test]
@@ -138,8 +136,8 @@ mod tests {
 
         let intersections = sphere.intersect(&ray);
         assert_eq!(intersections.len(), 2);
-        assert_eq!(float::is_equal(intersections[0].t, 3.), true);
-        assert_eq!(float::is_equal(intersections[1].t, 7.), true);
+        assert_eq!(float::is_equal(intersections[0], 3.), true);
+        assert_eq!(float::is_equal(intersections[1], 7.), true);
     }
 
     #[test]

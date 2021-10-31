@@ -1,5 +1,7 @@
 use crate::color::Color;
 use crate::light::Light;
+use crate::material::Material;
+use crate::object::Object;
 use crate::ppm::Saveable;
 use crate::shape::Shape;
 use crate::sphere::Sphere;
@@ -30,11 +32,17 @@ fn main() {
     let pixel_size = wall_size / canvas_pixels as f64;
 
     let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
-    let mut shape = Sphere::new(
+    let material = Material {
+        color: Color::new(1., 0.2, 1.),
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+    };
+    let shape = Object::Sphere(Sphere::new(
         matrix::IDENTITY,
-        material::DEFAULT_MATERIAL,
-    );
-    shape.material.color = Color::new(1., 0.2, 1.);
+        material,
+    ));
 
     let light_position = Tuple::point(-10., 10., -10.);
     let light_color = Color::new(1., 1., 1.);
