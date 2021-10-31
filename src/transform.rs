@@ -1,5 +1,6 @@
-use crate::matrix;
-use crate::tuple::TupleMethods;
+use crate::{matrix, transform};
+use crate::matrix::{Matrix4, Matrix4Methods};
+use crate::tuple::{Tuple, TupleMethods};
 
 pub fn translation(x: f64, y: f64, z: f64) -> matrix::Matrix4 {
     [
@@ -55,6 +56,20 @@ pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> matrix:
     ]
 }
 
+pub fn view(from: Tuple, to: Tuple, up: Tuple) -> Matrix4 {
+    let forward = to.subtract(from).normalize();
+    let up_normalized = up.normalize();
+    let left = forward.cross(up_normalized);
+    let true_up = left.cross(forward);
+    let orientation = [
+        left,
+        true_up,
+        forward.negate(),
+        [0., 0., 0., 1.],
+    ];
+    let backward_transform = transform::translation(-from[0], -from[1], -from[2]);
+    orientation.multiply_matrix(backward_transform)
+}
 
 #[cfg(test)]
 mod tests {
@@ -162,5 +177,49 @@ mod tests {
         let tsr = t.multiply_matrix(s.multiply_matrix(r));
         let expected_value = [15., 0., 7., 1.];
         assert!(tsr.multiply_tuple(p).is_equal(expected_value));
+    }
+
+    #[test]
+    fn test_view_default() {
+        let from = Tuple::point(0., 0., 0.);
+        let to = Tuple::point(0., 0., -1.);
+        let up = Tuple::vector(0., 1., 0.);
+        let view = view(from, to, up);
+        assert!(view.is_equal(matrix::IDENTITY));
+    }
+
+    #[test]
+    fn test_view_looking_in_positive_z_direction() {
+        let from = Tuple::point(0., 0., 0.);
+        let to = Tuple::point(0., 0., 1.);
+        let up = Tuple::vector(0., 1., 0.);
+        let view = view(from, to, up);
+        let expected_value = transform::scaling(-1., 1., -1.);
+        assert!(view.is_equal(expected_value));
+    }
+
+    #[test]
+    fn test_view_moves_world() {
+        let from = Tuple::point(0., 0., 8.);
+        let to = Tuple::point(0., 0., 0.);
+        let up = Tuple::vector(0., 1., 0.);
+        let view = view(from, to, up);
+        let expected_value = transform::translation(0., 0., -8.);
+        assert!(view.is_equal(expected_value));
+    }
+
+    #[test]
+    fn test_view_arbitrary() {
+        let from = Tuple::point(1., 3., 2.);
+        let to = Tuple::point(4., -2., 8.);
+        let up = Tuple::vector(1., 1., 0.);
+        let view = view(from, to, up);
+        let expected_value = [
+            [-0.50709, 0.50709, 0.67612, -2.36643],
+            [0.76772, 0.60609, 0.12122, -2.82843],
+            [-0.35857, 0.59761, -0.71714, 0.00000],
+            [0.00000, 0.00000, 0.00000, 1.00000],
+        ];
+        assert!(view.is_equal(expected_value));
     }
 }
