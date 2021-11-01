@@ -8,11 +8,13 @@ use crate::tuple::TupleMethods;
 mod camera;
 mod canvas;
 mod color;
+mod examples;
 mod float;
 mod intersection;
 mod light;
 mod material;
 mod matrix;
+mod plane;
 mod ppm;
 mod ray;
 mod shape;
@@ -21,10 +23,9 @@ mod transform;
 mod tuple;
 mod object;
 mod world;
-mod examples;
 
 fn main() {
-    let world = examples::chapter_seven_scene();
+    let world = examples::chapter_nine_scene();
 
     let from = Tuple::point(0., 1.5, -5.);
     let to = Tuple::point(0., 1., 0.);
