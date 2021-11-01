@@ -22,11 +22,6 @@ impl Sphere {
             material: material,
         }
     }
-
-    pub fn set_transform(&mut self, m: matrix::Matrix4) {
-        self.transform = m;
-        self.inverse_transform = m.inverse().unwrap();
-    }
 }
 
 impl Shape for Sphere {
@@ -193,10 +188,9 @@ mod tests {
     #[test]
     fn test_normal_at_for_translated_sphere() {
         let mut s = Sphere::new(
-            matrix::IDENTITY,
+            transform::translation(0.,1.,0.),
             material::DEFAULT_MATERIAL,
         );
-        s.set_transform(transform::translation(0.,1.,0.));
         let normal = s.normal_at(Tuple::point(0.,1.70711,-0.70711));
         let expected_value = Tuple::vector(0.,0.70711,-0.70711);
         assert!(normal.is_equal(expected_value));
@@ -204,14 +198,13 @@ mod tests {
 
     #[test]
     fn test_normal_at_for_transformed_sphere() {
-        let mut sphere = Sphere::new(
-            matrix::IDENTITY,
-            material::DEFAULT_MATERIAL,
-        );
         let s = transform::scaling(1., 0.5, 1.);
         let rz = transform::rotation_z(PI/5.);
         let transform = s.multiply_matrix(rz);
-        sphere.set_transform(transform);
+        let mut sphere = Sphere::new(
+            transform,
+            material::DEFAULT_MATERIAL,
+        );
         let normal = sphere.normal_at(Tuple::point(0.,0.70711,-0.70711));
         let expected_value = Tuple::vector(0., 0.97014, -0.24254);
         assert!(normal.is_equal(expected_value));
