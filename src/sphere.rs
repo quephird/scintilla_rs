@@ -30,12 +30,12 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &ray::Ray) -> Vec<f64> {
-        let inverse_transform = self.transform.inverse().unwrap();
-        let transformed_ray = ray.transform(inverse_transform);
-        let sphere_to_ray = transformed_ray.origin.subtract([0., 0., 0., 1.]);
-        let a = transformed_ray.direction.dot(transformed_ray.direction);
-        let b = 2. * transformed_ray.direction.dot(sphere_to_ray);
+    fn intersect(&self, local_ray: &ray::Ray) -> Vec<f64> {
+        // let inverse_transform = self.transform.inverse().unwrap();
+        // let transformed_ray = ray.transform(inverse_transform);
+        let sphere_to_ray = local_ray.origin.subtract([0., 0., 0., 1.]);
+        let a = local_ray.direction.dot(local_ray.direction);
+        let b = 2. * local_ray.direction.dot(sphere_to_ray);
         let c = sphere_to_ray.dot(sphere_to_ray) - 1.;
         let discriminant = b*b - 4.*a*c;
 
@@ -124,15 +124,14 @@ mod tests {
 
     #[test]
     fn test_intersect_scaled() {
-        let ray = ray::Ray::new([0., 0., -5., 1.], [0., 0., 1., 0.]);
         let mut sphere = Sphere::new(
-            matrix::IDENTITY,
+            transform::scaling(2., 2., 2.),
             material::DEFAULT_MATERIAL,
         );
-        let transform = transform::scaling(2., 2., 2.);
-        sphere.set_transform(transform);
+        let world_ray = ray::Ray::new([0., 0., -5., 1.], [0., 0., 1., 0.]);
+        let local_ray = world_ray.transform(sphere.inverse_transform);
 
-        let intersections = sphere.intersect(&ray);
+        let intersections = sphere.intersect(&local_ray);
         assert_eq!(intersections.len(), 2);
         assert_eq!(float::is_equal(intersections[0], 3.), true);
         assert_eq!(float::is_equal(intersections[1], 7.), true);
@@ -140,15 +139,14 @@ mod tests {
 
     #[test]
     fn test_intersect_translated() {
-        let ray = ray::Ray::new([0., 0., -5., 1.], [0., 0., 1., 0.]);
         let mut sphere = Sphere::new(
-            matrix::IDENTITY,
+            transform::translation(5., 0., 0.),
             material::DEFAULT_MATERIAL,
         );
-        let transform = transform::translation(5., 0., 0.);
-        sphere.set_transform(transform);
+        let world_ray = ray::Ray::new([0., 0., -5., 1.], [0., 0., 1., 0.]);
+        let local_ray = world_ray.transform(sphere.inverse_transform);
 
-        let intersections = sphere.intersect(&ray);
+        let intersections = sphere.intersect(&local_ray);
         assert_eq!(intersections.len(), 0);
     }
 
