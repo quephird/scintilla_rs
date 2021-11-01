@@ -26,8 +26,6 @@ impl Sphere {
 
 impl Shape for Sphere {
     fn intersect(&self, local_ray: &ray::Ray) -> Vec<f64> {
-        // let inverse_transform = self.transform.inverse().unwrap();
-        // let transformed_ray = ray.transform(inverse_transform);
         let sphere_to_ray = local_ray.origin.subtract([0., 0., 0., 1.]);
         let a = local_ray.direction.dot(local_ray.direction);
         let b = 2. * local_ray.direction.dot(sphere_to_ray);
@@ -43,12 +41,8 @@ impl Shape for Sphere {
         }
     }
 
-    fn normal_at(&self, world_point: tuple::Tuple) -> tuple::Tuple {
-        let object_point = self.inverse_transform.multiply_tuple(world_point);
-        let object_normal = object_point.subtract(Tuple::point(0.,0.,0.));
-        let mut world_normal = self.inverse_transform.transpose().multiply_tuple(object_normal);
-        world_normal[3] = 0.;
-        world_normal.normalize()
+    fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
+        local_point.subtract(Tuple::point(0.,0.,0.))
     }
 
     fn get_material(&self) -> material::Material {
@@ -187,13 +181,15 @@ mod tests {
 
     #[test]
     fn test_normal_at_for_translated_sphere() {
-        let mut s = Sphere::new(
+        let sphere = Sphere::new(
             transform::translation(0.,1.,0.),
             material::DEFAULT_MATERIAL,
         );
-        let normal = s.normal_at(Tuple::point(0.,1.70711,-0.70711));
+        let world_point = Tuple::point(0.,1.70711,-0.70711);
+        let local_point = sphere.inverse_transform.multiply_tuple(world_point);
+        let local_normal = sphere.normal_at(local_point);
         let expected_value = Tuple::vector(0.,0.70711,-0.70711);
-        assert!(normal.is_equal(expected_value));
+        assert!(local_normal.is_equal(expected_value));
     }
 
     #[test]
@@ -201,12 +197,14 @@ mod tests {
         let s = transform::scaling(1., 0.5, 1.);
         let rz = transform::rotation_z(PI/5.);
         let transform = s.multiply_matrix(rz);
-        let mut sphere = Sphere::new(
+        let sphere = Sphere::new(
             transform,
             material::DEFAULT_MATERIAL,
         );
-        let normal = sphere.normal_at(Tuple::point(0.,0.70711,-0.70711));
-        let expected_value = Tuple::vector(0., 0.97014, -0.24254);
-        assert!(normal.is_equal(expected_value));
+        let world_point = Tuple::point(0.,0.70711,-0.70711);
+        let local_point = sphere.inverse_transform.multiply_tuple(world_point);
+        let local_normal = sphere.normal_at(local_point);
+        let expected_value = Tuple::vector(0.83126, 1.14413, -0.70711);
+        assert!(local_normal.is_equal(expected_value));
     }
 }
