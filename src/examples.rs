@@ -7,7 +7,6 @@ use crate::{matrix, transform};
 use crate::matrix::Matrix4Methods;
 use crate::object::Object;
 use crate::sphere::Sphere;
-use crate::transform::rotation_x;
 use crate::tuple::{Tuple, TupleMethods};
 use crate::world::World;
 

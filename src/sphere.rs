@@ -44,10 +44,6 @@ impl Shape for Sphere {
     fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
         local_point.subtract(Tuple::point(0.,0.,0.))
     }
-
-    fn get_material(&self) -> material::Material {
-        self.material.clone()
-    }
 }
 
 #[cfg(test)]
@@ -113,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_intersect_scaled() {
-        let mut sphere = Sphere::new(
+        let sphere = Sphere::new(
             transform::scaling(2., 2., 2.),
             material::DEFAULT_MATERIAL,
         );
@@ -128,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_intersect_translated() {
-        let mut sphere = Sphere::new(
+        let sphere = Sphere::new(
             transform::translation(5., 0., 0.),
             material::DEFAULT_MATERIAL,
         );
