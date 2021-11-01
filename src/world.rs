@@ -4,6 +4,8 @@ use crate::{color, intersection, light};
 use crate::light::Light;
 use crate::object::Object;
 use crate::ray;
+use crate::ray::Ray;
+use crate::tuple::{Tuple, TupleMethods};
 
 pub struct World {
     pub light: light::Light,
@@ -29,13 +31,35 @@ impl World {
         all_intersections
     }
 
+    pub fn is_shadowed(&self, point: Tuple) -> bool {
+        let light_to_point = self.light.position.subtract(point);
+        let distance = light_to_point.magnitude();
+        let direction = light_to_point.normalize();
+        let ray = Ray::new(point, direction);
+        let mut intersections = self.intersect(&ray);
+        let hit = intersection::hit(&mut intersections);
+        match hit {
+            Some(h) => {
+                if h.t < distance {
+                    true
+                } else {
+                    false
+                }
+            }
+            None => false
+        }
+    }
+
     pub fn shade_hit(&self, computations: Computations) -> Color {
+        let is_shadowed = self.is_shadowed(computations.over_point);
+
         let material = computations.object.get_material();
         material.lighting(
             &self.light,
             computations.point,
             computations.eye,
-            computations.normal
+            computations.normal,
+            is_shadowed,
         )
     }
 
@@ -113,6 +137,34 @@ mod tests {
             .map(|i| i.t)
             .collect();
         assert_eq!(ts, [4., 4.5, 5.5, 6.]);
+    }
+
+    #[test]
+    fn test_is_shadowed_point_is_not_collinear_with_light() {
+        let world = test_world();
+        let point = Tuple::point(0., 10., 0.);
+        assert_eq!(world.is_shadowed(point), false);
+    }
+
+    #[test]
+    fn test_is_shadowed_object_between_light_and_point() {
+        let world = test_world();
+        let point = Tuple::point(10., -10., 10.);
+        assert_eq!(world.is_shadowed(point), true);
+    }
+
+    #[test]
+    fn test_is_shadowed_light_between_point_and_object() {
+        let world = test_world();
+        let point = Tuple::point(-20., 20., -20.);
+        assert_eq!(world.is_shadowed(point), false);
+    }
+
+    #[test]
+    fn test_is_shadowed_point_between_light_and_object() {
+        let world = test_world();
+        let point = Tuple::point(-2., 2., -2.);
+        assert_eq!(world.is_shadowed(point), false);
     }
 
     #[test]

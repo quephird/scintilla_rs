@@ -1,3 +1,4 @@
+use crate::float;
 use crate::object::Object;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
@@ -30,6 +31,8 @@ impl Intersection<'_> {
             is_inside = false;
         }
 
+        let over_point = point.add(normal.multiply(float::EPSILON));
+
         Computations {
             t: self.t,
             point: point,
@@ -37,6 +40,7 @@ impl Intersection<'_> {
             normal: normal,
             is_inside: is_inside,
             object: self.object,
+            over_point: over_point
         }
     }
 }
@@ -48,6 +52,7 @@ pub struct Computations<'scene> {
     pub normal: Tuple,
     pub is_inside: bool,
     pub object: &'scene Object,
+    pub over_point: Tuple,
 }
 
 pub fn hit<'a>(intersections: &'a mut Vec<Intersection>) -> Option<&'a Intersection<'a>> {
