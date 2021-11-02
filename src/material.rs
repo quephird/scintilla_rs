@@ -1,9 +1,19 @@
-use crate::{color, light, tuple};
+use crate::{color, light, pattern, tuple};
+use crate::color::Color;
+use crate::material::Coloring::{SolidColor, SurfacePattern};
+use crate::pattern::Pattern;
+use crate::pattern::PatternMethods;
 use crate::tuple::TupleMethods;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
+pub enum Coloring {
+    SolidColor(Color),
+    SurfacePattern(Pattern),
+}
+
+#[derive(Clone)]
 pub struct Material {
-    pub color: color::Color,
+    pub color: Coloring,
     pub ambient: f64,
     pub diffuse: f64,
     pub specular: f64,
@@ -11,7 +21,7 @@ pub struct Material {
 }
 
 pub const DEFAULT_MATERIAL:Material = Material {
-    color: color::WHITE,
+    color: SolidColor(color::WHITE),
     ambient: 0.1,
     diffuse: 0.9,
     specular: 0.9,
@@ -30,7 +40,11 @@ impl Material {
                     normal: tuple::Tuple,
                     is_shadowed: bool) -> color::Color {
         // Combine the surface color with the light's color/intensity
-        let effective_color = self.color.hadamard(light.intensity);
+        let effective_color = match &self.color {
+            SolidColor(color) => *color,
+            SurfacePattern(pattern) => pattern.color_at(point),
+        }.hadamard(light.intensity);
+        // let effective_color = self.color.hadamard(light.intensity);
         let ambient = effective_color.multiply(self.ambient);
 
         if is_shadowed == true {
@@ -77,6 +91,9 @@ impl Material {
 #[cfg(test)]
 mod tests {
     use crate::color::Color;
+    use crate::light::Light;
+    use crate::pattern::Pattern::StripedPattern;
+    use crate::pattern::Striped;
     use crate::tuple::Tuple;
     use super::*;
 
@@ -133,5 +150,30 @@ mod tests {
         let light = light::Light::new(Tuple::point(0., 0., 10.), color::WHITE);
         let color = material.lighting(&light, position, eye, normal, false);
         assert_eq!(color, Color::new(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn test_lighting_with_pattern() {
+        let pattern = Striped::new(color::WHITE, color::BLACK);
+        let material = Material {
+            color: Coloring::SurfacePattern(StripedPattern(pattern)),
+            ambient: 1.0,
+            diffuse: 0.0,
+            specular: 0.0,
+            shininess: 0.0
+        };
+        let eye = Tuple::vector(0., 0., -1.);
+        let normal = Tuple::vector(0., 0., -1.);
+        let light = Light::new(
+            Tuple::point(0., 0., -10.),
+            Color::new(1., 1., 1.)
+        );
+        let p1 = Tuple::point(0.9, 0., 0.);
+        let c1 = material.lighting(&light, p1, eye, normal, false);
+        assert_eq!(c1, color::WHITE);
+
+        let p2 = Tuple::point(1.1, 0., 0.);
+        let c2 = material.lighting(&light, p2, eye, normal, false);
+        assert_eq!(c2, color::BLACK);
     }
 }

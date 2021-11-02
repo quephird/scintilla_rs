@@ -49,10 +49,10 @@ impl Object {
         }
     }
 
-    pub fn get_material(&self) -> material::Material {
+    pub fn get_material(&self) -> &material::Material {
         match self {
-            Object::Sphere(sphere) => sphere.material,
-            Object::Plane(plane) => plane.material,
+            Object::Sphere(sphere) => &sphere.material,
+            Object::Plane(plane) => &plane.material,
         }
     }
 }

@@ -84,6 +84,7 @@ mod tests {
     use crate::light;
     use crate::light::Light;
     use crate::material;
+    use crate::material::Coloring::SolidColor;
     use crate::object::Object;
     use crate::ray::Ray;
     use crate::sphere;
@@ -100,7 +101,7 @@ mod tests {
 
         let t1 = matrix::IDENTITY;
         let m1 = material::Material {
-            color: color::Color::new(0.8, 1.0, 0.6),
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
             ambient: 0.1,
             diffuse: 0.7,
             specular: 0.2,
@@ -231,7 +232,7 @@ mod tests {
 
         let t1 = matrix::IDENTITY;
         let m1 = material::Material {
-            color: color::Color::new(0.8, 1.0, 0.6),
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
             ambient: 1.,
             diffuse: 0.7,
             specular: 0.2,

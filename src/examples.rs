@@ -3,9 +3,12 @@ use std::f64::consts::PI;
 use crate::color::Color;
 use crate::light::Light;
 use crate::material::Material;
-use crate::{material, matrix, transform};
+use crate::{material, matrix, pattern, transform};
+use crate::material::Coloring::{SolidColor, SurfacePattern};
 use crate::matrix::Matrix4Methods;
 use crate::object::Object;
+use crate::pattern::Pattern::StripedPattern;
+use crate::pattern::Striped;
 use crate::plane::Plane;
 use crate::sphere::Sphere;
 use crate::tuple::{Tuple, TupleMethods};
@@ -18,7 +21,7 @@ pub fn purple_sphere() -> World {
     );
 
     let material = Material {
-        color: Color::new(1., 0.2, 1.),
+        color: SolidColor(Color::new(1., 0.2, 1.)),
         ambient: 0.1,
         diffuse: 0.9,
         specular: 0.9,
@@ -41,7 +44,7 @@ pub fn chapter_seven_scene() -> World {
     );
 
     let floor_material = Material {
-        color: Color::new(1., 0.9, 0.9),
+        color: SolidColor(Color::new(1., 0.9, 0.9)),
         ambient: 0.1,
         diffuse: 0.9,
         specular: 0.0,
@@ -50,7 +53,7 @@ pub fn chapter_seven_scene() -> World {
     let floor = Object::Sphere(
         Sphere::new(
             transform::scaling(10., 0.01, 10.),
-            floor_material,
+            floor_material.clone(),
         )
     );
 
@@ -61,7 +64,7 @@ pub fn chapter_seven_scene() -> World {
     let left_wall = Object::Sphere(
         Sphere::new(
             transform_left_wall,
-            floor_material
+            floor_material.clone()
         )
     );
 
@@ -72,13 +75,13 @@ pub fn chapter_seven_scene() -> World {
     let right_wall = Object::Sphere(
         Sphere::new(
             transform_right_wall,
-            floor_material
+            floor_material.clone()
         )
     );
 
     let transform_middle = transform::translation(-0.5, 1., 0.5);
     let material_middle = Material {
-        color: Color::new(0.1, 1., 0.5),
+        color: SolidColor(Color::new(0.1, 1., 0.5)),
         ambient: 0.1,
         diffuse: 0.7,
         specular: 0.3,
@@ -94,7 +97,7 @@ pub fn chapter_seven_scene() -> World {
     let transform_right = transform::translation(1.5, 0.5, -0.5)
         .multiply_matrix(transform::scaling(0.5, 0.5, 0.5));
     let material_right = Material {
-        color: Color::new(0.5, 1., 0.1),
+        color: SolidColor(Color::new(0.5, 1., 0.1)),
         ambient: 0.1,
         diffuse: 0.7,
         specular: 0.3,
@@ -110,7 +113,7 @@ pub fn chapter_seven_scene() -> World {
     let transform_left = transform::translation(-1.5, 0.33, -0.75)
         .multiply_matrix(transform::scaling(0.33, 0.33, 0.33));
     let material_left = Material {
-        color: Color::new(1., 0.8, 0.1),
+        color: SolidColor(Color::new(1., 0.8, 0.1)),
         ambient: 0.1,
         diffuse: 0.7,
         specular: 0.3,
@@ -133,7 +136,7 @@ pub fn chapter_nine_scene() -> World {
     );
 
     let floor_material = Material {
-        color: Color::new(1., 0.9, 0.9),
+        color: SolidColor(Color::new(1., 0.9, 0.9)),
         ambient: 0.1,
         diffuse: 0.9,
         specular: 0.0,
@@ -148,7 +151,7 @@ pub fn chapter_nine_scene() -> World {
 
     let transform_middle = transform::translation(-0.5, 1., 0.5);
     let material_middle = Material {
-        color: Color::new(0.1, 1., 0.5),
+        color: SolidColor(Color::new(0.1, 1., 0.5)),
         ambient: 0.1,
         diffuse: 0.7,
         specular: 0.3,
@@ -164,7 +167,7 @@ pub fn chapter_nine_scene() -> World {
     let transform_right = transform::translation(1.5, 0.5, -0.5)
         .multiply_matrix(transform::scaling(0.5, 0.5, 0.5));
     let material_right = Material {
-        color: Color::new(0.5, 1., 0.1),
+        color: SolidColor(Color::new(0.5, 1., 0.1)),
         ambient: 0.1,
         diffuse: 0.7,
         specular: 0.3,
@@ -180,7 +183,7 @@ pub fn chapter_nine_scene() -> World {
     let transform_left = transform::translation(-1.5, 0.33, -0.75)
         .multiply_matrix(transform::scaling(0.33, 0.33, 0.33));
     let material_left = Material {
-        color: Color::new(1., 0.8, 0.1),
+        color: SolidColor(Color::new(1., 0.8, 0.1)),
         ambient: 0.1,
         diffuse: 0.7,
         specular: 0.3,

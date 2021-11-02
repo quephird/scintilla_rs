@@ -23,6 +23,7 @@ mod transform;
 mod tuple;
 mod object;
 mod world;
+mod pattern;
 
 fn main() {
     let world = examples::chapter_nine_scene();
