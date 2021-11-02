@@ -92,6 +92,7 @@ impl Material {
 mod tests {
     use crate::color::Color;
     use crate::light::Light;
+    use crate::matrix;
     use crate::pattern::Pattern::StripedPattern;
     use crate::pattern::Striped;
     use crate::tuple::Tuple;
@@ -154,7 +155,11 @@ mod tests {
 
     #[test]
     fn test_lighting_with_pattern() {
-        let pattern = Striped::new(color::WHITE, color::BLACK);
+        let pattern = Striped::new(
+                color::WHITE,
+                color::BLACK,
+                matrix::IDENTITY,
+        );
         let material = Material {
             color: Coloring::SurfacePattern(StripedPattern(pattern)),
             ambient: 1.0,
