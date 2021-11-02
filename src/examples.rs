@@ -198,3 +198,37 @@ pub fn chapter_nine_scene() -> World {
 
     World::new(light, vec![floor, left_sphere, middle_sphere, right_sphere])
 }
+
+pub fn chapter_ten_scene() -> World {
+    let light = Light::new(
+        Tuple::point(-10., 10., -10.),
+        Color::new(1., 1., 1.),
+    );
+
+    let pattern = SurfacePattern(
+        StripedPattern(
+            Striped::new(
+                Color::new(1.0, 0.5, 0.0),
+                Color::new(0.8, 0.2, 1.0),
+                transform::scaling(0.25, 1.0, 1.0),
+            )
+        )
+    );
+
+    let material = Material {
+        color: pattern,
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+    };
+    let sphere = Object::Sphere(
+        Sphere::new(
+            transform::rotation_z(PI/4.),
+            material,
+        )
+    );
+
+    World::new(light, vec![sphere])
+}
+

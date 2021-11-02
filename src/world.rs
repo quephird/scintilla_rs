@@ -56,6 +56,7 @@ impl World {
         let material = computations.object.get_material();
         material.lighting(
             &self.light,
+            computations.object,
             computations.point,
             computations.eye,
             computations.normal,

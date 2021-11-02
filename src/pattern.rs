@@ -1,6 +1,8 @@
 use crate::color::Color;
-use crate::matrix::Matrix4;
+use crate::matrix::{Matrix4, Matrix4Methods};
+use crate::object::Object;
 use crate::pattern::Pattern::StripedPattern;
+use crate::shape::Shape;
 use crate::tuple::Tuple;
 
 #[derive(Clone)]
@@ -9,9 +11,17 @@ pub enum Pattern {
 }
 
 impl Pattern {
-    pub fn color_at(&self, world_point: Tuple) -> Color {
+    pub fn color_at(&self, object: &Object, world_point: Tuple) -> Color {
+        let object_point = object.get_inverse_transform().multiply_tuple(world_point);
+        let pattern_point = self.get_inverse_transform().multiply_tuple(object_point);
         match self {
-            StripedPattern(striped) => striped.color_at(world_point),
+            StripedPattern(striped) => striped.color_at(pattern_point),
+        }
+    }
+
+    pub fn get_inverse_transform(&self) -> Matrix4 {
+        match self {
+            StripedPattern(striped) => striped.inverse_transform,
         }
     }
 }
@@ -21,6 +31,7 @@ pub struct Striped {
     color: Color,
     other_color: Color,
     transform: Matrix4,
+    inverse_transform: Matrix4,
 }
 
 impl Striped {
@@ -29,17 +40,18 @@ impl Striped {
             color: color,
             other_color: other_color,
             transform: transform,
+            inverse_transform: transform.inverse().unwrap(),
         }
     }
 }
 
 pub trait PatternMethods {
-    fn color_at(&self, world_point: Tuple) -> Color;
+    fn color_at(&self, point: Tuple) -> Color;
 }
 
 impl PatternMethods for Striped {
-    fn color_at(&self, world_point: Tuple) -> Color {
-        if world_point[0].floor() % 2. == 0. {
+    fn color_at(&self, point: Tuple) -> Color {
+        if point[0].floor() % 2. == 0. {
             self.color
         } else {
             self.other_color
