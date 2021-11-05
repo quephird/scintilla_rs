@@ -4,6 +4,7 @@ use crate::intersection::Intersection;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::tuple::TupleMethods;
 
+#[derive(Clone)]
 pub enum Object {
     Sphere(sphere::Sphere),
     Plane(plane::Plane),

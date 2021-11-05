@@ -8,6 +8,7 @@ use crate::shape::Shape;
 use crate::tuple;
 use crate::tuple::{Tuple, TupleMethods};
 
+#[derive(Clone)]
 pub struct Sphere {
     pub transform: matrix::Matrix4,
     pub inverse_transform: matrix::Matrix4,

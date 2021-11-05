@@ -50,18 +50,31 @@ impl World {
         }
     }
 
+    pub fn reflected_color(&self, computations: &Computations) -> Color {
+        if computations.object.get_material().reflective == 0.0 {
+            color::BLACK
+        } else {
+            let reflected_ray = Ray::new(computations.over_point, computations.reflected);
+            let reflected_color = self.color_at(&reflected_ray);
+            reflected_color.multiply(computations.object.get_material().reflective)
+        }
+    }
+
     pub fn shade_hit(&self, computations: Computations) -> Color {
         let is_shadowed = self.is_shadowed(computations.over_point);
 
         let material = computations.object.get_material();
-        material.lighting(
+        let surface_color = material.lighting(
             &self.light,
             computations.object,
             computations.point,
             computations.eye,
             computations.normal,
             is_shadowed,
-        )
+        );
+        let reflected_color = self.reflected_color(&computations);
+
+        surface_color.add(reflected_color)
     }
 
     pub fn color_at(&self, ray: &ray::Ray) -> Color {
@@ -79,7 +92,7 @@ impl World {
 
 #[cfg(test)]
 mod tests {
-    use crate::{color, matrix};
+    use crate::{color, matrix, plane};
     use crate::color::Color;
     use crate::intersection::Intersection;
     use crate::light;
@@ -204,6 +217,69 @@ mod tests {
     }
 
     #[test]
+    fn test_shade_hit_reflective_material() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+        };
+
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 1.0,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+        };
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let t3 = transform::translation(0., -1., 0.);
+        let m3 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.5,
+        };
+        let plane = Object::Plane(
+            plane::Plane::new(t3, m3)
+        );
+
+        let objects = vec![s1.clone(), s2.clone(), plane.clone()];
+        let world =  World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+        );
+        let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
+        let computations = intersection.prepare_computations(&ray);
+        let color = world.shade_hit(computations);
+        assert_eq!(color, Color::new(0.87676, 0.92434, 0.82917));
+    }
+
+    #[test]
     fn test_color_at_ray_misses() {
         let world = test_world();
         let ray = Ray::new(
@@ -264,5 +340,118 @@ mod tests {
         );
         let color = world.color_at(&ray);
         assert_eq!(color, color::WHITE);
+    }
+
+    #[test]
+    fn test_prepare_computations_nonrelective_material() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.0,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+        };
+
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+        };
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let objects = vec![s1.clone(), s2.clone()];
+        let world =  World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., 0.),
+            Tuple::vector(0., 0., 1.)
+        );
+        let intersection = Intersection::new(1., &s2);
+        let computations = intersection.prepare_computations(&ray);
+        let reflected_color = world.reflected_color(&computations);
+        assert_eq!(reflected_color, color::BLACK);
+    }
+
+    #[test]
+    fn test_prepare_computations_reflective_material() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+        };
+
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 1.0,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+        };
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let t3 = transform::translation(0., -1., 0.);
+        let m3 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.0,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.5,
+        };
+        let plane = Object::Plane(
+            plane::Plane::new(t3, m3)
+        );
+
+        let objects = vec![s1.clone(), s2.clone(), plane.clone()];
+        let world =  World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+        );
+        let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
+        let computations = intersection.prepare_computations(&ray);
+        let reflected_color = world.reflected_color(&computations);
+        assert_eq!(reflected_color, Color::new(0.19033, 0.23792, 0.14275));
     }
 }

@@ -32,12 +32,14 @@ impl Intersection<'_> {
         }
 
         let over_point = point.add(normal.multiply(float::EPSILON));
+        let reflected = ray.direction.reflect(normal);
 
         Computations {
             t: self.t,
             point: point,
             eye: eye,
             normal: normal,
+            reflected: reflected,
             is_inside: is_inside,
             object: self.object,
             over_point: over_point
@@ -50,6 +52,7 @@ pub struct Computations<'scene> {
     pub point: Tuple,
     pub eye: Tuple,
     pub normal: Tuple,
+    pub reflected: Tuple,
     pub is_inside: bool,
     pub object: &'scene Object,
     pub over_point: Tuple,

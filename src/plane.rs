@@ -5,6 +5,7 @@ use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::shape::Shape;
 use crate::tuple::TupleMethods;
 
+#[derive(Clone)]
 pub struct Plane {
     pub transform: matrix::Matrix4,
     pub inverse_transform: matrix::Matrix4,
