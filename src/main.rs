@@ -32,7 +32,7 @@ fn main() {
     let to = Tuple::point(0., 1., 0.);
     let up = Tuple::vector(0., 1., 0.);
     let view = transform::view(from, to, up);
-    let camera = Camera::new(view, 500, 500, PI/3.);
+    let camera = Camera::new(view, 800, 800, PI/2.);
 
     println!("Rendering scene...");
     let canvas = camera.render(world);
