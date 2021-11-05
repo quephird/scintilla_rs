@@ -21,6 +21,8 @@ pub struct Material {
     pub specular: f64,
     pub shininess: f64,
     pub reflective: f64,
+    pub transparency: f64,
+    pub refractive: f64,
 }
 
 pub const DEFAULT_MATERIAL:Material = Material {
@@ -30,6 +32,8 @@ pub const DEFAULT_MATERIAL:Material = Material {
     specular: 0.9,
     shininess: 200.0,
     reflective: 0.0,
+    transparency: 0.0,
+    refractive: 1.0,
 };
 
 impl Material {
@@ -202,6 +206,8 @@ mod tests {
             specular: 0.0,
             shininess: 0.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let sphere = Object::Sphere(
             Sphere::new(

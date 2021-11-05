@@ -220,6 +220,8 @@ mod tests {
             specular: 0.0,
             shininess: 0.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let transform = transform::scaling(2., 2., 2.);
         let object = Object::Sphere(
@@ -246,6 +248,8 @@ mod tests {
             specular: 0.0,
             shininess: 0.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let object = Object::Sphere(
             Sphere::new(matrix::IDENTITY, material)
@@ -273,6 +277,8 @@ mod tests {
             specular: 0.0,
             shininess: 0.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let object = Object::Sphere(
             Sphere::new(object_transform, material)

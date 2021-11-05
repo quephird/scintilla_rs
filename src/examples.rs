@@ -29,6 +29,8 @@ pub fn purple_sphere() -> World {
         specular: 0.9,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let sphere = Object::Sphere(
             Sphere::new(
@@ -53,6 +55,8 @@ pub fn chapter_seven_scene() -> World {
         specular: 0.0,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let floor = Object::Sphere(
         Sphere::new(
@@ -91,6 +95,8 @@ pub fn chapter_seven_scene() -> World {
         specular: 0.3,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let middle_sphere = Object::Sphere(
         Sphere::new(
@@ -108,6 +114,8 @@ pub fn chapter_seven_scene() -> World {
         specular: 0.3,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let right_sphere = Object::Sphere(
         Sphere::new(
@@ -125,6 +133,8 @@ pub fn chapter_seven_scene() -> World {
         specular: 0.3,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let left_sphere = Object::Sphere(
         Sphere::new(
@@ -149,6 +159,8 @@ pub fn chapter_nine_scene() -> World {
         specular: 0.0,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let floor = Object::Plane(
         Plane::new(
@@ -165,6 +177,8 @@ pub fn chapter_nine_scene() -> World {
         specular: 0.3,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let middle_sphere = Object::Sphere(
         Sphere::new(
@@ -182,6 +196,8 @@ pub fn chapter_nine_scene() -> World {
         specular: 0.3,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let right_sphere = Object::Sphere(
         Sphere::new(
@@ -199,6 +215,8 @@ pub fn chapter_nine_scene() -> World {
         specular: 0.3,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let left_sphere = Object::Sphere(
         Sphere::new(
@@ -232,6 +250,8 @@ pub fn chapter_ten_scene() -> World {
         specular: 0.9,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let striped_sphere = Object::Sphere(
         Sphere::new(
@@ -258,6 +278,8 @@ pub fn chapter_ten_scene() -> World {
         specular: 0.9,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let gradient_sphere = Object::Sphere(
         Sphere::new(
@@ -283,6 +305,8 @@ pub fn chapter_ten_scene() -> World {
         specular: 0.9,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let checkered_sphere = Object::Sphere(
         Sphere::new(
@@ -307,6 +331,8 @@ pub fn chapter_ten_scene() -> World {
         specular: 0.0,
         shininess: 200.0,
         reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
     };
     let floor = Object::Plane(
         Plane::new(

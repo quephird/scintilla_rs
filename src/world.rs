@@ -127,6 +127,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let s1 = Object::Sphere(
             sphere::Sphere::new(t1, m1)
@@ -237,6 +239,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
 
         let s1 = Object::Sphere(
@@ -251,6 +255,8 @@ mod tests {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let s2 = Object::Sphere(
             sphere::Sphere::new(t2, m2)
@@ -264,6 +270,8 @@ mod tests {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.5,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let plane = Object::Plane(
             plane::Plane::new(t3, m3)
@@ -322,6 +330,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let s1 = Object::Sphere(
             sphere::Sphere::new(t1, m1)
@@ -363,6 +373,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
 
         let s1 = Object::Sphere(
@@ -377,6 +389,8 @@ mod tests {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let s2 = Object::Sphere(
             sphere::Sphere::new(t2, m2)
@@ -413,6 +427,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
 
         let s1 = Object::Sphere(
@@ -427,6 +443,8 @@ mod tests {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let s2 = Object::Sphere(
             sphere::Sphere::new(t2, m2)
@@ -440,6 +458,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 0.5,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let plane = Object::Plane(
             plane::Plane::new(t3, m3)
@@ -475,6 +495,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 1.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let lower_plane = Object::Plane(
             plane::Plane::new(t1, m1)
@@ -488,6 +510,8 @@ mod tests {
             specular: 0.2,
             shininess: 200.0,
             reflective: 1.0,
+            transparency: 0.0,
+            refractive: 1.0,
         };
         let upper_plane = Object::Plane(
             plane::Plane::new(t2, m2)
