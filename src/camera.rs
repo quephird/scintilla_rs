@@ -6,6 +6,7 @@ use crate::world::World;
 
 pub struct Camera {
     pub view: Matrix4,
+    pub view_inverse: Matrix4,
     pub horizontal_size: usize,
     pub vertical_size: usize,
     pub field_of_view: f64,
@@ -31,6 +32,7 @@ impl Camera {
 
         Camera {
             view: view,
+            view_inverse: view.inverse().unwrap(),
             horizontal_size: horizontal_size,
             vertical_size: vertical_size,
             field_of_view: field_of_view,
@@ -53,8 +55,8 @@ impl Camera {
         // Using the camera matrix, transform the canvas point and the origin,
         // and then compute the ray's direction vector.
         // (Remember that the canvas is at z=-1)
-        let pixel = self.view.inverse().unwrap().multiply_tuple(Tuple::point(world_x, world_y, -1.));
-        let origin = self.view.inverse().unwrap().multiply_tuple(Tuple::point(0., 0., 0.));
+        let pixel = self.view_inverse.multiply_tuple(Tuple::point(world_x, world_y, -1.));
+        let origin = self.view_inverse.multiply_tuple(Tuple::point(0., 0., 0.));
         let direction = pixel.subtract(origin).normalize();
 
         Ray::new(origin, direction)
