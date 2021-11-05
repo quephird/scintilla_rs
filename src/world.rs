@@ -12,6 +12,8 @@ pub struct World {
     pub objects: Vec<Object>,
 }
 
+pub const MAX_RECURSIONS: usize = 5;
+
 impl World {
     pub fn new(light: Light, objects: Vec<Object>) -> World {
         World {
@@ -50,17 +52,21 @@ impl World {
         }
     }
 
-    pub fn reflected_color(&self, computations: &Computations) -> Color {
+    pub fn reflected_color(&self, computations: &Computations, remaining_reflections: usize) -> Color {
+        if remaining_reflections <= 0 {
+            return color::BLACK
+        }
+
         if computations.object.get_material().reflective == 0.0 {
             color::BLACK
         } else {
             let reflected_ray = Ray::new(computations.over_point, computations.reflected);
-            let reflected_color = self.color_at(&reflected_ray);
+            let reflected_color = self.color_at(&reflected_ray, remaining_reflections-1);
             reflected_color.multiply(computations.object.get_material().reflective)
         }
     }
 
-    pub fn shade_hit(&self, computations: Computations) -> Color {
+    pub fn shade_hit(&self, computations: Computations, remaining_reflections: usize) -> Color {
         let is_shadowed = self.is_shadowed(computations.over_point);
 
         let material = computations.object.get_material();
@@ -72,19 +78,19 @@ impl World {
             computations.normal,
             is_shadowed,
         );
-        let reflected_color = self.reflected_color(&computations);
+        let reflected_color = self.reflected_color(&computations, remaining_reflections);
 
         surface_color.add(reflected_color)
     }
 
-    pub fn color_at(&self, ray: &ray::Ray) -> Color {
+    pub fn color_at(&self, ray: &ray::Ray, remaining_reflections: usize) -> Color {
         let mut intersections = self.intersect(ray);
         let hit = intersection::hit(&mut intersections);
         match hit {
             None => color::BLACK,
             Some(intersection) => {
                 let computations = intersection.prepare_computations(&ray);
-                self.shade_hit(computations)
+                self.shade_hit(computations, remaining_reflections)
             }
         }
     }
@@ -105,7 +111,7 @@ mod tests {
     use crate::transform;
     use crate::tuple;
     use crate::tuple::{Tuple, TupleMethods};
-    use crate::world::World;
+    use crate::world::{MAX_RECURSIONS, World};
 
     pub fn test_world() -> World {
         let light = light::Light::new(
@@ -193,7 +199,7 @@ mod tests {
         let shape = world.objects.first().unwrap();
         let intersection = Intersection::new(4., shape);
         let computations = intersection.prepare_computations(&ray);
-        let color = world.shade_hit(computations);
+        let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.38066, 0.47583, 0.2855));
     }
 
@@ -212,7 +218,7 @@ mod tests {
         let shape = world.objects.iter().nth(1).unwrap();
         let intersection = Intersection::new(0.5, shape);
         let computations = intersection.prepare_computations(&ray);
-        let color = world.shade_hit(computations);
+        let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.90498, 0.90498, 0.90498));
     }
 
@@ -275,7 +281,7 @@ mod tests {
         );
         let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
         let computations = intersection.prepare_computations(&ray);
-        let color = world.shade_hit(computations);
+        let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.87676, 0.92434, 0.82917));
     }
 
@@ -286,7 +292,7 @@ mod tests {
             Tuple::point(0., 0., -5.),
             Tuple::vector(0., 1., 0.)
         );
-        let color = world.color_at(&ray);
+        let color = world.color_at(&ray, MAX_RECURSIONS);
         assert_eq!(color, color::BLACK);
     }
 
@@ -297,7 +303,7 @@ mod tests {
             Tuple::point(0., 0., -5.),
             Tuple::vector(0., 0., 1.)
         );
-        let color = world.color_at(&ray);
+        let color = world.color_at(&ray, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.38066, 0.47583, 0.2855));
     }
 
@@ -338,7 +344,7 @@ mod tests {
             Tuple::point(0., 0., 0.75),
             Tuple::vector(0., 0., -1.)
         );
-        let color = world.color_at(&ray);
+        let color = world.color_at(&ray, MAX_RECURSIONS);
         assert_eq!(color, color::WHITE);
     }
 
@@ -388,7 +394,7 @@ mod tests {
         );
         let intersection = Intersection::new(1., &s2);
         let computations = intersection.prepare_computations(&ray);
-        let reflected_color = world.reflected_color(&computations);
+        let reflected_color = world.reflected_color(&computations, MAX_RECURSIONS);
         assert_eq!(reflected_color, color::BLACK);
     }
 
@@ -451,7 +457,53 @@ mod tests {
         );
         let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
         let computations = intersection.prepare_computations(&ray);
-        let reflected_color = world.reflected_color(&computations);
+        let reflected_color = world.reflected_color(&computations, MAX_RECURSIONS);
         assert_eq!(reflected_color, Color::new(0.19033, 0.23792, 0.14275));
+    }
+
+    #[test]
+    fn test_color_at_terminates_safely() {
+        let light = light::Light::new(
+            tuple::Tuple::point(0., 0., 0.),
+            color::Color::new(1., 1., 1.)
+        );
+        let t1 = transform::translation(0., -1., 0.);
+        let m1 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 1.0,
+        };
+        let lower_plane = Object::Plane(
+            plane::Plane::new(t1, m1)
+        );
+
+        let t2 = transform::translation(0., 1., 0.);
+        let m2 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 1.0,
+        };
+        let upper_plane = Object::Plane(
+            plane::Plane::new(t2, m2)
+        );
+
+        let objects = vec![lower_plane, upper_plane];
+        let world =  World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+        );
+        // There is nothing to assert here; just that the call to color_at terminates.
+        let color = world.color_at(&ray, MAX_RECURSIONS);
     }
 }

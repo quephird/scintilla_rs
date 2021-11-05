@@ -3,6 +3,7 @@ use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::ray::Ray;
 use crate::tuple::{Tuple, TupleMethods};
 use crate::world::World;
+use crate::world;
 
 pub struct Camera {
     pub view: Matrix4,
@@ -67,7 +68,7 @@ impl Camera {
         for y in 0..self.vertical_size - 1 {
             for x in 0..self.horizontal_size - 1 {
                 let ray = self.ray_at(x, y);
-                let color = world.color_at(&ray);
+                let color = world.color_at(&ray, world::MAX_RECURSIONS);
                 canvas.set_pixel(x, y, color);
             }
         }
