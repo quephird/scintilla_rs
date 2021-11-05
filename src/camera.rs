@@ -137,7 +137,8 @@ mod tests {
             ambient: 0.1,
             diffuse: 0.7,
             specular: 0.2,
-            shininess: 200.0
+            shininess: 200.0,
+            reflective: 0.0,
         };
         let s1 = Object::Sphere(
             sphere::Sphere::new(t1, m1)
