@@ -32,6 +32,7 @@ impl Intersection<'_> {
         }
 
         let over_point = point.add(normal.multiply(float::EPSILON));
+        let under_point = point.subtract(normal.multiply(float::EPSILON));
         let reflected = ray.direction.reflect(normal);
 
         let (n1, n2) = self.refractive_indices_for(all_intersections);
@@ -45,6 +46,7 @@ impl Intersection<'_> {
             is_inside: is_inside,
             object: self.object,
             over_point: over_point,
+            under_point: under_point,
             n1: n1,
             n2: n2,
         }
@@ -95,6 +97,7 @@ pub struct Computations<'scene> {
     pub is_inside: bool,
     pub object: &'scene Object,
     pub over_point: Tuple,
+    pub under_point: Tuple,
     pub n1: f64,
     pub n2: f64,
 }
