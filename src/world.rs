@@ -60,7 +60,19 @@ impl World {
         if computations.object.get_material().transparency == 0.0 {
             color::BLACK
         } else {
-            color::WHITE
+            // Find the ratio of first index of refraction to the second.
+            // (Yup, this is inverted from the definition of Snell's Law.)
+            let n_ratio = computations.n1 / computations.n2;
+            // cos(theta_i) is the same as the dot product of the two vectors
+            let cos_theta_i = computations.eye.dot(computations.normal);
+            // Find sin(theta_t)^2 via trigonometric identity
+            let sin2_theta_t = n_ratio * n_ratio * (1. - cos_theta_i*cos_theta_i);
+
+            if sin2_theta_t > 1. {
+                color::BLACK
+            } else {
+                color::WHITE
+            }
         }
     }
 
@@ -642,6 +654,53 @@ mod tests {
         let i1 = intersections.iter().nth(0).unwrap();
         let computations = i1.prepare_computations(&ray, intersections.clone());
         let color = world.refracted_color(&computations, 0);
+        assert_eq!(color, color::BLACK);
+    }
+
+    #[test]
+    fn test_refracted_color_total_internal_reflection() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 1.0,
+            refractive: 1.5,
+        };
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::DEFAULT_MATERIAL;
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let objects = vec![s1.clone(), s2.clone()];
+        let world = World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., 2.0_f64.sqrt()/2.),
+            Tuple::vector(0., 1., 0.)
+        );
+        let intersections = world.intersect(&ray);
+        // NOTE: this time you're inside the sphere, so you need
+        // to look at the second intersection not the first one.
+        let i2 = intersections.iter().nth(1).unwrap();
+        let computations = i2.prepare_computations(&ray, intersections.clone());
+        let color = world.refracted_color(&computations, MAX_RECURSIONS);
         assert_eq!(color, color::BLACK);
     }
 }
