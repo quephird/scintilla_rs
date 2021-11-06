@@ -56,4 +56,15 @@ impl Object {
             Object::Plane(plane) => &plane.material,
         }
     }
+
+    // TODO: This is a hack; ideally we really need an object ID in each shape
+    pub fn is_equal(&self, other: &Object) -> bool {
+        match (self, other) {
+            (Object::Sphere(s1), Object::Sphere(s2)) =>
+                s1.transform.is_equal(s2.transform),
+            (Object::Plane(p1), Object::Plane(p2)) =>
+                p1.transform.is_equal(p2.transform),
+            _ => false,
+        }
+    }
 }

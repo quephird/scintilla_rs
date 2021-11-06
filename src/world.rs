@@ -85,11 +85,13 @@ impl World {
 
     pub fn color_at(&self, ray: &ray::Ray, remaining_reflections: usize) -> Color {
         let mut intersections = self.intersect(ray);
+        // TODO: See if this can be avoided
+        let intersections_copy = intersections.clone();
         let hit = intersection::hit(&mut intersections);
         match hit {
             None => color::BLACK,
             Some(intersection) => {
-                let computations = intersection.prepare_computations(&ray);
+                let computations = intersection.prepare_computations(&ray, intersections_copy);
                 self.shade_hit(computations, remaining_reflections)
             }
         }
@@ -200,7 +202,9 @@ mod tests {
         );
         let shape = world.objects.first().unwrap();
         let intersection = Intersection::new(4., shape);
-        let computations = intersection.prepare_computations(&ray);
+        let computations = intersection.prepare_computations(
+            &ray, vec![intersection.clone()]
+        );
         let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.38066, 0.47583, 0.2855));
     }
@@ -219,7 +223,9 @@ mod tests {
         );
         let shape = world.objects.iter().nth(1).unwrap();
         let intersection = Intersection::new(0.5, shape);
-        let computations = intersection.prepare_computations(&ray);
+        let computations = intersection.prepare_computations(
+            &ray, vec![intersection.clone()]
+        );
         let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.90498, 0.90498, 0.90498));
     }
@@ -288,7 +294,9 @@ mod tests {
             Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
         );
         let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
-        let computations = intersection.prepare_computations(&ray);
+        let computations = intersection.prepare_computations(
+            &ray, vec![intersection.clone()]
+        );
         let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.87676, 0.92434, 0.82917));
     }
@@ -407,7 +415,9 @@ mod tests {
             Tuple::vector(0., 0., 1.)
         );
         let intersection = Intersection::new(1., &s2);
-        let computations = intersection.prepare_computations(&ray);
+        let computations = intersection.prepare_computations(
+            &ray, vec![intersection.clone()]
+        );
         let reflected_color = world.reflected_color(&computations, MAX_RECURSIONS);
         assert_eq!(reflected_color, color::BLACK);
     }
@@ -476,7 +486,9 @@ mod tests {
             Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
         );
         let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
-        let computations = intersection.prepare_computations(&ray);
+        let computations = intersection.prepare_computations(
+            &ray, vec![intersection.clone()]
+        );
         let reflected_color = world.reflected_color(&computations, MAX_RECURSIONS);
         assert_eq!(reflected_color, Color::new(0.19033, 0.23792, 0.14275));
     }

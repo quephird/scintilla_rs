@@ -41,6 +41,19 @@ impl Material {
         DEFAULT_MATERIAL
     }
 
+    pub fn with_refractive(&self, refractive: f64) -> Material {
+        Material {
+            color: self.color.clone(),
+            ambient: self.ambient,
+            diffuse: self.diffuse,
+            specular: self.specular,
+            shininess: self.shininess,
+            reflective: self.reflective,
+            transparency: self.transparency,
+            refractive: refractive,
+        }
+    }
+
     pub fn lighting(&self,
                     light: &light::Light,
                     object: &Object,
