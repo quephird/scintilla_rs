@@ -52,6 +52,18 @@ impl World {
         }
     }
 
+    pub fn refracted_color(&self, computations: &Computations, remaining_reflections: usize) -> Color {
+        if remaining_reflections <= 0 {
+            return color::BLACK
+        }
+
+        if computations.object.get_material().transparency == 0.0 {
+            color::BLACK
+        } else {
+            color::WHITE
+        }
+    }
+
     pub fn reflected_color(&self, computations: &Computations, remaining_reflections: usize) -> Color {
         if remaining_reflections <= 0 {
             return color::BLACK
@@ -540,6 +552,96 @@ mod tests {
             Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
         );
         // There is nothing to assert here; just that the call to color_at terminates.
-        let color = world.color_at(&ray, MAX_RECURSIONS);
+        let _color = world.color_at(&ray, MAX_RECURSIONS);
+    }
+
+    #[test]
+    fn test_refracted_color_opaque_surface() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
+        };
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::DEFAULT_MATERIAL;
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let objects = vec![s1.clone(), s2.clone()];
+        let world = World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -5.),
+            Tuple::vector(0., 0., 1.)
+        );
+        let intersections = world.intersect(&ray);
+        let i1 = intersections.iter().nth(0).unwrap();
+        let computations = i1.prepare_computations(&ray, intersections.clone());
+        let color = world.refracted_color(&computations, MAX_RECURSIONS);
+        assert_eq!(color, color::BLACK);
+    }
+
+    #[test]
+    fn test_refracted_color_at_maximum_recursive_depth() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 1.0,
+            refractive: 1.5,
+        };
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::DEFAULT_MATERIAL;
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let objects = vec![s1.clone(), s2.clone()];
+        let world = World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -5.),
+            Tuple::vector(0., 0., 1.)
+        );
+        let intersections = world.intersect(&ray);
+        let i1 = intersections.iter().nth(0).unwrap();
+        let computations = i1.prepare_computations(&ray, intersections.clone());
+        let color = world.refracted_color(&computations, 0);
+        assert_eq!(color, color::BLACK);
     }
 }

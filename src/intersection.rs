@@ -257,7 +257,7 @@ mod tests {
             (1.5, 1.0),
         ];
         for i in 0..6 {
-            let mut all_intersections = world.intersect(&ray);
+            let all_intersections = world.intersect(&ray);
             let hit = &all_intersections[i];
             let computations = hit.prepare_computations(&ray, all_intersections.clone());
             assert_eq!((computations.n1, computations.n2), expected_values[i]);
