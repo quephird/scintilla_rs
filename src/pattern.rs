@@ -1,7 +1,7 @@
 use crate::color::Color;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::object::Object;
-use crate::pattern::Pattern::{CheckerPattern, GradientPattern, RingPattern, StripedPattern};
+use crate::pattern::Pattern::{CheckerPattern, GradientPattern, RingPattern, StripedPattern, TestPattern};
 use crate::shape::Shape;
 use crate::tuple::Tuple;
 
@@ -11,6 +11,7 @@ pub enum Pattern {
     GradientPattern(Gradient),
     RingPattern(Ring),
     CheckerPattern(Checker),
+    TestPattern(Test),
 }
 
 impl Pattern {
@@ -22,6 +23,7 @@ impl Pattern {
             GradientPattern(gradient) => gradient.color_at(pattern_point),
             RingPattern(ring) => ring.color_at(pattern_point),
             CheckerPattern(checker) => checker.color_at(pattern_point),
+            TestPattern(test) => test.color_at(pattern_point),
         }
     }
 
@@ -31,6 +33,7 @@ impl Pattern {
             GradientPattern(gradient) => gradient.inverse_transform,
             RingPattern(ring) => ring.inverse_transform,
             CheckerPattern(checker) => checker.inverse_transform,
+            TestPattern(test) => test.inverse_transform,
         }
     }
 }
@@ -150,6 +153,27 @@ impl PatternMethods for Checker {
         } else {
             self.other_color
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct Test {
+    transform: Matrix4,
+    inverse_transform: Matrix4,
+}
+
+impl Test {
+    pub fn new(transform: Matrix4) -> Test {
+        Test {
+            transform: transform,
+            inverse_transform: transform.inverse().unwrap(),
+        }
+    }
+}
+
+impl PatternMethods for Test {
+    fn color_at(&self, point: Tuple) -> Color {
+        Color::new(point[0], point[1], point[2])
     }
 }
 

@@ -71,7 +71,18 @@ impl World {
             if sin2_theta_t > 1. {
                 color::BLACK
             } else {
-                color::WHITE
+                // Find cos(theta_t) via trigonometric identity
+                let cos_theta_t = (1.0 - sin2_theta_t).sqrt();
+                // Compute the direction of the refracted ray
+                let direction = computations.normal
+                    .multiply(n_ratio * cos_theta_i - cos_theta_t)
+                    .subtract(computations.eye.multiply(n_ratio));
+                // Create the refracted ray
+                let refracted_ray = Ray::new(computations.under_point, direction);
+                // Find the color of the refracted ray, making sure to multiply
+                // by the transparency value to account for any opacity
+                self.color_at(&refracted_ray, remaining_reflections - 1)
+                    .multiply(computations.object.get_material().transparency)
             }
         }
     }
@@ -103,8 +114,9 @@ impl World {
             is_shadowed,
         );
         let reflected_color = self.reflected_color(&computations, remaining_reflections);
+        let refracted_color = self.refracted_color(&computations, remaining_reflections);
 
-        surface_color.add(reflected_color)
+        surface_color.add(reflected_color).add(refracted_color)
     }
 
     pub fn color_at(&self, ray: &ray::Ray, remaining_reflections: usize) -> Color {
@@ -130,8 +142,10 @@ mod tests {
     use crate::light;
     use crate::light::Light;
     use crate::material;
-    use crate::material::Coloring::SolidColor;
+    use crate::material::Coloring::{SolidColor, SurfacePattern};
     use crate::object::Object;
+    use crate::pattern::Pattern::TestPattern;
+    use crate::pattern::Test;
     use crate::ray::Ray;
     use crate::sphere;
     use crate::transform;
@@ -308,14 +322,14 @@ mod tests {
         );
 
         let objects = vec![s1.clone(), s2.clone(), plane.clone()];
-        let world =  World {
+        let world = World {
             light: light,
             objects: objects,
         };
 
         let ray = Ray::new(
             Tuple::point(0., 0., -3.),
-            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+            Tuple::vector(0., -2.0_f64.sqrt() / 2., 2.0_f64.sqrt() / 2.)
         );
         let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
         let computations = intersection.prepare_computations(
@@ -429,7 +443,7 @@ mod tests {
         );
 
         let objects = vec![s1.clone(), s2.clone()];
-        let world =  World {
+        let world = World {
             light: light,
             objects: objects,
         };
@@ -500,14 +514,14 @@ mod tests {
         );
 
         let objects = vec![s1.clone(), s2.clone(), plane.clone()];
-        let world =  World {
+        let world = World {
             light: light,
             objects: objects,
         };
 
         let ray = Ray::new(
             Tuple::point(0., 0., -3.),
-            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+            Tuple::vector(0., -2.0_f64.sqrt() / 2., 2.0_f64.sqrt() / 2.)
         );
         let intersection = Intersection::new(2.0_f64.sqrt(), &plane);
         let computations = intersection.prepare_computations(
@@ -554,14 +568,14 @@ mod tests {
         );
 
         let objects = vec![lower_plane, upper_plane];
-        let world =  World {
+        let world = World {
             light: light,
             objects: objects,
         };
 
         let ray = Ray::new(
             Tuple::point(0., 0., -3.),
-            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+            Tuple::vector(0., -2.0_f64.sqrt() / 2., 2.0_f64.sqrt() / 2.)
         );
         // There is nothing to assert here; just that the call to color_at terminates.
         let _color = world.color_at(&ray, MAX_RECURSIONS);
@@ -692,7 +706,7 @@ mod tests {
         };
 
         let ray = Ray::new(
-            Tuple::point(0., 0., 2.0_f64.sqrt()/2.),
+            Tuple::point(0., 0., 2.0_f64.sqrt() / 2.),
             Tuple::vector(0., 1., 0.)
         );
         let intersections = world.intersect(&ray);
@@ -702,5 +716,113 @@ mod tests {
         let computations = i2.prepare_computations(&ray, intersections.clone());
         let color = world.refracted_color(&computations, MAX_RECURSIONS);
         assert_eq!(color, color::BLACK);
+    }
+
+    #[test]
+    fn test_refracted_color_for_refracted_ray() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SurfacePattern(TestPattern(Test::new(matrix::IDENTITY))),
+            ambient: 1.0,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
+        };
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 1.0,
+            refractive: 1.5,
+        };
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let objects = vec![s1.clone(), s2.clone()];
+        let world = World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., 0.1),
+            Tuple::vector(0., 1., 0.)
+        );
+        let intersections = world.intersect(&ray);
+        let i3 = intersections.iter().nth(2).unwrap();
+        let computations = i3.prepare_computations(&ray, intersections.clone());
+        let color = world.refracted_color(&computations, MAX_RECURSIONS);
+        assert_eq!(color, Color::new(0., 0.99888, 0.04722));
+    }
+
+    #[test]
+    fn test_shade_hit_for_transparent_material() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = transform::translation(0., -1., 0.);
+        let m1 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 0.5,
+            refractive: 1.5,
+        };
+        let floor = Object::Plane(
+            plane::Plane::new(t1, m1)
+        );
+
+        let t2 = transform::translation(0.0, -3.5, -0.5);
+        let m2 = material::Material {
+            color: SolidColor(Color::new(1., 0., 0.)),
+            ambient: 0.5,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
+        };
+        let ball = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let objects = vec![floor.clone(), ball.clone()];
+        let world = World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+        );
+        let intersections = world.intersect(&ray);
+        let i0 = intersections.iter().nth(0).unwrap();
+        let computations = i0.prepare_computations(&ray, intersections.clone());
+        let color = world.shade_hit(computations, MAX_RECURSIONS);
+        assert_eq!(color, Color::new(0.93642, 0.68642, 0.68642));
     }
 }
