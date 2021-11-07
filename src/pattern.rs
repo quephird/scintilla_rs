@@ -1,7 +1,7 @@
 use crate::color::Color;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::object::Object;
-use crate::pattern::Pattern::{CheckerPattern, GradientPattern, RingPattern, StripedPattern, TestPattern};
+use crate::pattern::Pattern::{Checker3DPattern, Checker2DPattern, GradientPattern, RingPattern, StripedPattern, TestPattern};
 use crate::shape::Shape;
 use crate::tuple::Tuple;
 
@@ -10,7 +10,8 @@ pub enum Pattern {
     StripedPattern(Striped),
     GradientPattern(Gradient),
     RingPattern(Ring),
-    CheckerPattern(Checker),
+    Checker3DPattern(Checker3D),
+    Checker2DPattern(Checker2D),
     TestPattern(Test),
 }
 
@@ -22,7 +23,8 @@ impl Pattern {
             StripedPattern(striped) => striped.color_at(pattern_point),
             GradientPattern(gradient) => gradient.color_at(pattern_point),
             RingPattern(ring) => ring.color_at(pattern_point),
-            CheckerPattern(checker) => checker.color_at(pattern_point),
+            Checker3DPattern(checker3d) => checker3d.color_at(pattern_point),
+            Checker2DPattern(checker2d) => checker2d.color_at(pattern_point),
             TestPattern(test) => test.color_at(pattern_point),
         }
     }
@@ -32,7 +34,8 @@ impl Pattern {
             StripedPattern(striped) => striped.inverse_transform,
             GradientPattern(gradient) => gradient.inverse_transform,
             RingPattern(ring) => ring.inverse_transform,
-            CheckerPattern(checker) => checker.inverse_transform,
+            Checker3DPattern(checker3d) => checker3d.inverse_transform,
+            Checker2DPattern(checker2d) => checker2d.inverse_transform,
             TestPattern(test) => test.inverse_transform,
         }
     }
@@ -128,16 +131,16 @@ impl PatternMethods for Ring {
 }
 
 #[derive(Clone)]
-pub struct Checker {
+pub struct Checker3D {
     color: Color,
     other_color: Color,
     transform: Matrix4,
     inverse_transform: Matrix4,
 }
 
-impl Checker {
-    pub fn new(color: Color, other_color: Color, transform: Matrix4) -> Checker {
-        Checker {
+impl Checker3D {
+    pub fn new(color: Color, other_color: Color, transform: Matrix4) -> Checker3D {
+        Checker3D {
             color: color,
             other_color: other_color,
             transform: transform,
@@ -146,9 +149,38 @@ impl Checker {
     }
 }
 
-impl PatternMethods for Checker {
+impl PatternMethods for Checker3D {
     fn color_at(&self, point: Tuple) -> Color {
         if (point[0].floor() + point[1].floor() + point[2].floor())%2.0 == 0.0 {
+            self.color
+        } else {
+            self.other_color
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct Checker2D {
+    color: Color,
+    other_color: Color,
+    transform: Matrix4,
+    inverse_transform: Matrix4,
+}
+
+impl Checker2D {
+    pub fn new(color: Color, other_color: Color, transform: Matrix4) -> Checker2D {
+        Checker2D {
+            color: color,
+            other_color: other_color,
+            transform: transform,
+            inverse_transform: transform.inverse().unwrap(),
+        }
+    }
+}
+
+impl PatternMethods for Checker2D {
+    fn color_at(&self, point: Tuple) -> Color {
+        if (point[0].floor() + point[2].floor())%2.0 == 0.0 {
             self.color
         } else {
             self.other_color
@@ -337,8 +369,8 @@ mod tests {
     }
 
     #[test]
-    fn test_local_color_at_checker_repeats_for_x() {
-        let pattern = Checker::new(
+    fn test_local_color_at_checker3d_repeats_for_x() {
+        let pattern = Checker3D::new(
             color::WHITE,
             color::BLACK,
             matrix::IDENTITY,
@@ -349,8 +381,8 @@ mod tests {
     }
 
     #[test]
-    fn test_local_color_at_checker_repeats_for_y() {
-        let pattern = Checker::new(
+    fn test_local_color_at_checker3d_repeats_for_y() {
+        let pattern = Checker3D::new(
             color::WHITE,
             color::BLACK,
             matrix::IDENTITY,
@@ -361,8 +393,8 @@ mod tests {
     }
 
     #[test]
-    fn test_local_color_at_checker_repeats_for_z() {
-        let pattern = Checker::new(
+    fn test_local_color_at_checker3d_repeats_for_z() {
+        let pattern = Checker3D::new(
             color::WHITE,
             color::BLACK,
             matrix::IDENTITY,

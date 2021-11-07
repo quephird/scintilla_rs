@@ -7,9 +7,9 @@ use crate::{color, material, matrix, pattern, transform};
 use crate::material::Coloring::{SolidColor, SurfacePattern};
 use crate::matrix::Matrix4Methods;
 use crate::object::Object;
-use crate::pattern::Pattern::{CheckerPattern, GradientPattern, RingPattern};
+use crate::pattern::Pattern::{Checker2DPattern, Checker3DPattern, GradientPattern, RingPattern};
 use crate::pattern::Pattern::StripedPattern;
-use crate::pattern::{Checker, Gradient, Ring, Striped};
+use crate::pattern::{Checker2D, Checker3D, Gradient, Ring, Striped};
 use crate::plane::Plane;
 use crate::sphere::Sphere;
 use crate::transform::rotation_y;
@@ -289,8 +289,8 @@ pub fn chapter_ten_scene() -> World {
     );
 
     let checkered = SurfacePattern(
-        CheckerPattern(
-            Checker::new(
+        Checker3DPattern(
+            Checker3D::new(
                 Color::new(0.0, 0.2, 0.8),
                 Color::new(0.8, 0.9, 0.1),
                 transform::scaling(0.4, 0.4, 0.4)
@@ -344,3 +344,54 @@ pub fn chapter_ten_scene() -> World {
     World::new(light, vec![gradient_sphere, striped_sphere, checkered_sphere, floor])
 }
 
+pub fn chapter_eleven_scene() -> World {
+    let light = Light::new(
+        Tuple::point(-10., 10., -10.),
+        Color::new(1., 1., 1.),
+    );
+
+    let material = Material {
+        color: SolidColor(Color::new(0.2, 0.0, 0.2)),
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.0,
+        transparency: 0.9,
+        refractive: 1.52,
+    };
+    let ball = Object::Sphere(
+        Sphere::new(
+            transform::translation(0., 1., 0.),
+            material,
+        )
+    );
+
+    let checkered = SurfacePattern(
+        Checker2DPattern(
+            Checker2D::new(
+                color::WHITE,
+                color::BLACK,
+                transform::rotation_y(PI/4.),
+            )
+        )
+    );
+    let floor_material = Material {
+        color: checkered,
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.0,
+        transparency: 0.0,
+        refractive: 1.0,
+    };
+    let floor = Object::Plane(
+        Plane::new(
+            matrix::IDENTITY,
+            floor_material,
+        )
+    );
+
+    World::new(light, vec![ball, floor])
+}
