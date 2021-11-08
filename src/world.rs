@@ -7,6 +7,27 @@ use crate::ray;
 use crate::ray::Ray;
 use crate::tuple::{Tuple, TupleMethods};
 
+pub fn schlick_reflectance_helper(n1: f64, n2: f64, cosine_of_angle: f64) -> f64 {
+    let ratio = (n1 - n2) / (n1 + n2);
+    ratio*ratio + (1.0 - ratio*ratio)*(1.0 - cosine_of_angle).powi(5)
+}
+
+pub fn schlick_reflectance(computations: Computations) -> f64 {
+    // Find the cosine of the angle between the eye and normal vectors
+    let cos_theta_1 = computations.eye.dot(computations.normal);
+    let n = computations.n1 / computations.n2;
+    let sin2_theta_1 = n*n * (1.0 - cos_theta_1*cos_theta_1);
+    let cos_theta_2 = (1.0 - sin2_theta_1).sqrt();
+    // Total internal reflection can only occur if n1 > n2
+    if computations.n1 > computations.n2 && sin2_theta_1 > 1.0 {
+        1.0
+    } else if computations.n1 > computations.n2 {
+        schlick_reflectance_helper(computations.n1, computations.n2, cos_theta_2)
+    } else {
+        schlick_reflectance_helper(computations.n1, computations.n2, cos_theta_1)
+    }
+}
+
 pub struct World {
     pub light: light::Light,
     pub objects: Vec<Object>,
@@ -116,7 +137,16 @@ impl World {
         let reflected_color = self.reflected_color(&computations, remaining_reflections);
         let refracted_color = self.refracted_color(&computations, remaining_reflections);
 
-        surface_color.add(reflected_color).add(refracted_color)
+        if material.reflective > 0. && material.transparency > 0. {
+            let reflectance = schlick_reflectance(computations);
+            surface_color
+                .add(reflected_color.multiply(reflectance))
+                .add(refracted_color.multiply(1. - reflectance))
+        } else {
+            surface_color
+                .add(reflected_color)
+                .add(refracted_color)
+        }
     }
 
     pub fn color_at(&self, ray: &ray::Ray, remaining_reflections: usize) -> Color {
@@ -136,7 +166,7 @@ impl World {
 
 #[cfg(test)]
 mod tests {
-    use crate::{color, matrix, plane};
+    use crate::{color, float, matrix, plane};
     use crate::color::Color;
     use crate::intersection::Intersection;
     use crate::light;
@@ -151,7 +181,7 @@ mod tests {
     use crate::transform;
     use crate::tuple;
     use crate::tuple::{Tuple, TupleMethods};
-    use crate::world::{MAX_RECURSIONS, World};
+    use crate::world::{MAX_RECURSIONS, schlick_reflectance, World};
 
     pub fn test_world() -> World {
         let light = light::Light::new(
@@ -824,5 +854,197 @@ mod tests {
         let computations = i0.prepare_computations(&ray, intersections.clone());
         let color = world.shade_hit(computations, MAX_RECURSIONS);
         assert_eq!(color, Color::new(0.93642, 0.68642, 0.68642));
+    }
+
+    #[test]
+    fn test_schlick_reflectance_total_internal_reflection() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let glass = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 1.0,
+            refractive: 1.5,
+        };
+        let glassy_sphere = Object::Sphere(
+            sphere::Sphere::new(
+                matrix::IDENTITY,
+                glass
+            )
+        );
+        let world = World {
+            light: light,
+            objects: vec![glassy_sphere],
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., 2.0_f64.sqrt()/2.),
+            Tuple::vector(0., 1., 0.)
+        );
+        let intersections = world.intersect(&ray);
+        let i1 = intersections.iter().nth(1).unwrap();
+        let computations = i1.prepare_computations(&ray, intersections.clone());
+        let reflectance = schlick_reflectance(computations);
+        assert_eq!(reflectance, 1.0);
+    }
+
+    #[test]
+    fn test_schlick_reflectance_perpendicular_ray() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let glass = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 1.0,
+            refractive: 1.5,
+        };
+        let glassy_sphere = Object::Sphere(
+            sphere::Sphere::new(
+                matrix::IDENTITY,
+                glass
+            )
+        );
+        let world = World {
+            light: light,
+            objects: vec![glassy_sphere],
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., 0.),
+            Tuple::vector(0., 1., 0.)
+        );
+        let intersections = world.intersect(&ray);
+        let i1 = intersections.iter().nth(1).unwrap();
+        let computations = i1.prepare_computations(&ray, intersections.clone());
+        let reflectance = schlick_reflectance(computations);
+        assert!(float::is_equal(reflectance, 0.04));
+    }
+
+    #[test]
+    fn test_schlick_reflectance_small_angle() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let glass = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 1.0,
+            refractive: 1.5,
+        };
+        let glassy_sphere = Object::Sphere(
+            sphere::Sphere::new(
+                matrix::IDENTITY,
+                glass
+            )
+        );
+        let world = World {
+            light: light,
+            objects: vec![glassy_sphere],
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0.99, -2.),
+            Tuple::vector(0., 0., 1.)
+        );
+        let intersections = world.intersect(&ray);
+        let i0 = intersections.iter().nth(0).unwrap();
+        let computations = i0.prepare_computations(&ray, intersections.clone());
+        let reflectance = schlick_reflectance(computations);
+        assert!(float::is_equal(reflectance, 0.48881));
+    }
+
+    #[test]
+    fn test_shade_hit_with_schlick_reflectance() {
+        let light = light::Light::new(
+            tuple::Tuple::point(-10., 10., -10.),
+            color::Color::new(1., 1., 1.)
+        );
+
+        let t1 = matrix::IDENTITY;
+        let m1 = material::Material {
+            color: SolidColor(color::Color::new(0.8, 1.0, 0.6)),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 0.0,
+            refractive: 1.0,
+        };
+        let s1 = Object::Sphere(
+            sphere::Sphere::new(t1, m1)
+        );
+
+        let t2 = transform::scaling(0.5, 0.5, 0.5);
+        let m2 = material::DEFAULT_MATERIAL;
+        let s2 = Object::Sphere(
+            sphere::Sphere::new(t2, m2)
+        );
+
+        let t3 = transform::translation(0., -1., 0.);
+        let m3 = material::Material {
+            color: SolidColor(color::WHITE),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.5,
+            transparency: 0.5,
+            refractive: 1.5,
+        };
+        let floor = Object::Plane(
+            plane::Plane::new(t3, m3)
+        );
+
+        let t4 = transform::translation(0.0, -3.5, -0.5);
+        let m4 = material::Material {
+            color: SolidColor(Color::new(1., 0., 0.)),
+            ambient: 0.5,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.0,
+            reflective: 0.0,
+            transparency: 0.0,
+            refractive: 0.0,
+        };
+        let ball = Object::Sphere(
+            sphere::Sphere::new(t4, m4)
+        );
+
+        let objects = vec![s1, s2, ball, floor];
+        let world = World {
+            light: light,
+            objects: objects,
+        };
+
+        let ray = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., -2.0_f64.sqrt()/2., 2.0_f64.sqrt()/2.)
+        );
+        let intersections = world.intersect(&ray);
+        let i0 = intersections.iter().nth(0).unwrap();
+        let computations = i0.prepare_computations(&ray, intersections.clone());
+        let color = world.shade_hit(computations, 5);
+        assert_eq!(color, Color::new(0.93391, 0.69643, 0.69243));
     }
 }
