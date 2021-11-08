@@ -350,7 +350,7 @@ pub fn chapter_eleven_scene() -> World {
         Color::new(1., 1., 1.),
     );
 
-    let material = Material {
+    let glass = Material {
         color: SolidColor(Color::new(0.2, 0.0, 0.2)),
         ambient: 0.1,
         diffuse: 0.9,
@@ -360,10 +360,78 @@ pub fn chapter_eleven_scene() -> World {
         transparency: 0.9,
         refractive: 1.52,
     };
-    let ball = Object::Sphere(
+    let glass_ball = Object::Sphere(
         Sphere::new(
             transform::translation(0., 1., 0.),
-            material,
+            glass,
+        )
+    );
+
+    let green_metal = Material {
+        color: SolidColor(Color::new(0.0, 0.4, 0.0)),
+        ambient: 0.5,
+        diffuse: 0.1,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.9,
+        transparency: 0.0,
+        refractive: 0.0,
+    };
+    let green_metallic_ball = Object::Sphere(
+        Sphere::new(
+            transform::translation(2.5, 1., 0.),
+            green_metal,
+        )
+    );
+
+    let red_metal = Material {
+        color: SolidColor(Color::new(0.4, 0.0, 0.0)),
+        ambient: 0.3,
+        diffuse: 0.3,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.9,
+        transparency: 0.0,
+        refractive: 0.0,
+    };
+    let red_metallic_ball = Object::Sphere(
+        Sphere::new(
+            transform::translation(-2.5, 1., 0.),
+            red_metal,
+        )
+    );
+
+    let orange = Material {
+        color: SolidColor(Color::new(0.8, 0.4, 0.0)),
+        ambient: 0.2,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.1,
+        transparency: 0.0,
+        refractive: 0.0,
+    };
+    let orange_ball = Object::Sphere(
+        Sphere::new(
+            transform::translation(-1.5, 1., 2.5),
+            orange,
+        )
+    );
+
+    let yellow = Material {
+        color: SolidColor(Color::new(0.8, 0.8, 0.0)),
+        ambient: 0.2,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.1,
+        transparency: 0.0,
+        refractive: 0.0,
+    };
+    let yellow_ball = Object::Sphere(
+        Sphere::new(
+            transform::translation(1.5, 1., 2.5),
+            yellow,
         )
     );
 
@@ -382,7 +450,7 @@ pub fn chapter_eleven_scene() -> World {
         diffuse: 0.9,
         specular: 0.9,
         shininess: 200.0,
-        reflective: 0.0,
+        reflective: 0.4,
         transparency: 0.0,
         refractive: 1.0,
     };
@@ -393,5 +461,12 @@ pub fn chapter_eleven_scene() -> World {
         )
     );
 
-    World::new(light, vec![ball, floor])
+    World::new(light, vec![
+        glass_ball,
+        red_metallic_ball,
+        green_metallic_ball,
+        orange_ball,
+        yellow_ball,
+        floor,
+    ])
 }
