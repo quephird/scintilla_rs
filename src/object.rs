@@ -1,5 +1,5 @@
 use crate::shape::Shape;
-use crate::{material, plane, ray, sphere, tuple};
+use crate::{cube, material, plane, ray, sphere, tuple};
 use crate::intersection::Intersection;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::tuple::TupleMethods;
@@ -8,6 +8,7 @@ use crate::tuple::TupleMethods;
 pub enum Object {
     Sphere(sphere::Sphere),
     Plane(plane::Plane),
+    Cube(cube::Cube),
 }
 
 impl Object {
@@ -16,6 +17,7 @@ impl Object {
         let ts = match self {
             Object::Sphere(sphere) => sphere.intersect(&local_ray),
             Object::Plane(plane) => plane.intersect(&local_ray),
+            Object::Cube(cube) => cube.intersect(&local_ray),
         };
         ts.iter()
             .map(|&t| Intersection::new(t, self))
@@ -26,6 +28,7 @@ impl Object {
         match self {
             Object::Sphere(sphere) => sphere,
             Object::Plane(plane) => plane,
+            Object::Cube(cube) => cube,
         }
     }
 
@@ -34,6 +37,7 @@ impl Object {
         let local_normal = match self {
             Object::Sphere(sphere) => sphere.normal_at(local_point),
             Object::Plane(plane) => plane.normal_at(local_point),
+            Object::Cube(cube) => cube.normal_at(local_point),
         };
         let mut world_normal = self
             .get_inverse_transform()
@@ -47,6 +51,7 @@ impl Object {
         match self {
             Object::Sphere(sphere) => sphere.inverse_transform,
             Object::Plane(plane) => plane.inverse_transform,
+            Object::Cube(cube) => cube.inverse_transform,
         }
     }
 
@@ -54,6 +59,7 @@ impl Object {
         match self {
             Object::Sphere(sphere) => &sphere.material,
             Object::Plane(plane) => &plane.material,
+            Object::Cube(cube) => &cube.material,
         }
     }
 
@@ -64,6 +70,8 @@ impl Object {
                 s1.transform.is_equal(s2.transform),
             (Object::Plane(p1), Object::Plane(p2)) =>
                 p1.transform.is_equal(p2.transform),
+            (Object::Cube(c1), Object::Cube(c2)) =>
+                c1.transform.is_equal(c2.transform),
             _ => false,
         }
     }

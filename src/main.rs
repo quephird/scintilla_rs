@@ -8,12 +8,15 @@ use crate::tuple::TupleMethods;
 mod camera;
 mod canvas;
 mod color;
+mod cube;
 mod examples;
 mod float;
 mod intersection;
 mod light;
 mod material;
 mod matrix;
+mod object;
+mod pattern;
 mod plane;
 mod ppm;
 mod ray;
@@ -21,9 +24,7 @@ mod shape;
 mod sphere;
 mod transform;
 mod tuple;
-mod object;
 mod world;
-mod pattern;
 
 fn main() {
     let world = examples::chapter_eleven_scene();
