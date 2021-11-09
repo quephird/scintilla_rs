@@ -1,7 +1,7 @@
 use crate::color::Color;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::object::Object;
-use crate::pattern::Pattern::{Checker3DPattern, Checker2DPattern, GradientPattern, RingPattern, StripedPattern, TestPattern};
+use crate::pattern::Pattern::{Checker3DPattern, Checker2DPattern, GradientPattern, RingPattern, Ring3DPattern,  StripedPattern, TestPattern};
 use crate::shape::Shape;
 use crate::tuple::Tuple;
 
@@ -10,6 +10,7 @@ pub enum Pattern {
     StripedPattern(Striped),
     GradientPattern(Gradient),
     RingPattern(Ring),
+    Ring3DPattern(Ring3D),
     Checker3DPattern(Checker3D),
     Checker2DPattern(Checker2D),
     TestPattern(Test),
@@ -23,6 +24,7 @@ impl Pattern {
             StripedPattern(striped) => striped.color_at(pattern_point),
             GradientPattern(gradient) => gradient.color_at(pattern_point),
             RingPattern(ring) => ring.color_at(pattern_point),
+            Ring3DPattern(ring3d) => ring3d.color_at(pattern_point),
             Checker3DPattern(checker3d) => checker3d.color_at(pattern_point),
             Checker2DPattern(checker2d) => checker2d.color_at(pattern_point),
             TestPattern(test) => test.color_at(pattern_point),
@@ -34,6 +36,7 @@ impl Pattern {
             StripedPattern(striped) => striped.inverse_transform,
             GradientPattern(gradient) => gradient.inverse_transform,
             RingPattern(ring) => ring.inverse_transform,
+            Ring3DPattern(ring3d) => ring3d.inverse_transform,
             Checker3DPattern(checker3d) => checker3d.inverse_transform,
             Checker2DPattern(checker2d) => checker2d.inverse_transform,
             TestPattern(test) => test.inverse_transform,
@@ -123,6 +126,35 @@ impl Ring {
 impl PatternMethods for Ring {
     fn color_at(&self, point: Tuple) -> Color {
         if (point[0]*point[0] + point[2]*point[2]).sqrt().floor()%2.0 == 0.0 {
+            self.color
+        } else {
+            self.other_color
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct Ring3D {
+    color: Color,
+    other_color: Color,
+    transform: Matrix4,
+    inverse_transform: Matrix4,
+}
+
+impl Ring3D {
+    pub fn new(color: Color, other_color: Color, transform: Matrix4) -> Ring3D {
+        Ring3D {
+            color: color,
+            other_color: other_color,
+            transform: transform,
+            inverse_transform: transform.inverse().unwrap(),
+        }
+    }
+}
+
+impl PatternMethods for Ring3D {
+    fn color_at(&self, point: Tuple) -> Color {
+        if (point[0]*point[0] + point[1]*point[1] + point[2]*point[2]).sqrt().floor()%2.0 == 0.0 {
             self.color
         } else {
             self.other_color

@@ -27,7 +27,7 @@ mod tuple;
 mod world;
 
 fn main() {
-    let world = examples::chapter_eleven_scene();
+    let world = examples::chapter_twelve_scene();
 
     let from = Tuple::point(0., 1.5, -5.);
     let to = Tuple::point(0., 1., 0.);

@@ -1,4 +1,4 @@
-use crate::{material, matrix, ray, tuple};
+use crate::{float, material, matrix, ray, tuple};
 use crate::float::EPSILON;
 use crate::material::Material;
 use crate::matrix::{Matrix4, Matrix4Methods};
@@ -51,7 +51,12 @@ impl Shape for Cube {
         let (ztmin, ztmax) = check_axis(local_ray.origin[2], local_ray.direction[2]);
         let tmin = xtmin.max(ytmin).max(ztmin);
         let tmax = xtmax.min(ytmax).min(ztmax);
-        vec![tmin, tmax]
+
+        if tmin > tmax {
+            vec![]
+        } else {
+            vec![tmin, tmax]
+        }
     }
 
     fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
@@ -59,9 +64,9 @@ impl Shape for Cube {
             .max(local_point[1].abs())
             .max(local_point[2].abs());
 
-        if maxc == local_point[0].abs() {
+        if float::is_equal(maxc, local_point[0].abs()) {
             Tuple::vector(local_point[0], 0., 0.)
-        } else if maxc == local_point[1].abs() {
+        } else if float::is_equal(maxc, local_point[1].abs()) {
             Tuple::vector(0., local_point[1], 0.)
         } else {
             Tuple::vector(0., 0., local_point[2])

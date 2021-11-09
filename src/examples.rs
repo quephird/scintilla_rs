@@ -4,12 +4,13 @@ use crate::color::Color;
 use crate::light::Light;
 use crate::material::Material;
 use crate::{color, material, matrix, pattern, transform};
+use crate::cube::Cube;
 use crate::material::Coloring::{SolidColor, SurfacePattern};
 use crate::matrix::Matrix4Methods;
 use crate::object::Object;
-use crate::pattern::Pattern::{Checker2DPattern, Checker3DPattern, GradientPattern, RingPattern};
+use crate::pattern::Pattern::{Checker2DPattern, Checker3DPattern, GradientPattern, Ring3DPattern, RingPattern};
 use crate::pattern::Pattern::StripedPattern;
-use crate::pattern::{Checker2D, Checker3D, Gradient, Ring, Striped};
+use crate::pattern::{Checker2D, Checker3D, Gradient, Ring, Ring3D, Striped};
 use crate::plane::Plane;
 use crate::sphere::Sphere;
 use crate::transform::rotation_y;
@@ -469,4 +470,67 @@ pub fn chapter_eleven_scene() -> World {
         yellow_ball,
         floor,
     ])
+}
+
+pub fn chapter_twelve_scene() -> World {
+    let light = Light::new(
+        Tuple::point(-10., 10., -10.),
+        Color::new(1., 1., 1.),
+    );
+
+    let transform = transform::translation(0., 1., 0.)
+        .multiply_matrix(transform::rotation_y(PI/4.));
+    let ringed = SurfacePattern(
+        Ring3DPattern(
+            Ring3D::new(
+                Color::new(1., 0., 0.),
+                Color::new(0., 1., 0.),
+                transform::scaling(0.1, 0.1, 0.1),
+            )
+        )
+    );
+    let material = Material {
+        color: ringed,
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.3,
+        transparency: 0.0,
+        refractive: 1.0,
+    };
+    let cube = Object::Cube(
+        Cube::new(
+            transform,
+            material,
+        )
+    );
+
+    let checkered = SurfacePattern(
+        Checker2DPattern(
+            Checker2D::new(
+                color::WHITE,
+                color::BLACK,
+                transform::rotation_y(PI/3.),
+            )
+        )
+    );
+    let floor_material = Material {
+        color: checkered,
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.4,
+        transparency: 0.0,
+        refractive: 1.0,
+    };
+    let floor = Object::Plane(
+        Plane::new(
+            matrix::IDENTITY,
+            floor_material,
+        )
+    );
+
+    World::new(light, vec![cube, floor])
 }
