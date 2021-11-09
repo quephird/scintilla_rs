@@ -55,7 +55,17 @@ impl Shape for Cube {
     }
 
     fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
-        tuple::Tuple::vector(0., 1., 0.)
+        let maxc = local_point[0].abs()
+            .max(local_point[1].abs())
+            .max(local_point[2].abs());
+
+        if maxc == local_point[0].abs() {
+            Tuple::vector(local_point[0], 0., 0.)
+        } else if maxc == local_point[1].abs() {
+            Tuple::vector(0., local_point[1], 0.)
+        } else {
+            Tuple::vector(0., 0., local_point[2])
+        }
     }
 }
 
@@ -106,5 +116,28 @@ mod tests {
         assert_eq!(ts.len(), 2);
         assert_eq!(ts[0], -1.);
         assert_eq!(ts[1], 1.)
+    }
+
+    #[test]
+    fn test_normal_at() {
+        let cube = Cube::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
+        let test_cases = vec![
+            (Tuple::point(1., 0.5, -0.8), Tuple::vector(1., 0., 0.)),
+            (Tuple::point(-1., -0.2, 0.9), Tuple::vector(-1., 0., 0.)),
+            (Tuple::point(-0.4, 1., -0.1), Tuple::vector(0., 1., 0.)),
+            (Tuple::point(0.3, -1., -0.7), Tuple::vector(0., -1., 0.)),
+            (Tuple::point(-0.6, 0.3, 1.), Tuple::vector(0., 0., 1.)),
+            (Tuple::point(0.4, 0.4, -1.), Tuple::vector(0., 0., -1.)),
+            (Tuple::point(1., 1., 1.), Tuple::vector(1., 0., 0.)),
+            (Tuple::point(-1., -1., -1.), Tuple::vector(-1., 0., 0.)),
+        ];
+
+        for (point, expected_value) in test_cases {
+            let normal = cube.normal_at(point);
+            assert!(normal.is_equal(expected_value));
+        }
     }
 }
