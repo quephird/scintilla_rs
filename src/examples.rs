@@ -495,7 +495,7 @@ pub fn chapter_twelve_scene() -> World {
         diffuse: 0.9,
         specular: 0.9,
         shininess: 200.0,
-        reflective: 0.3,
+        reflective: 0.1,
         transparency: 0.0,
         refractive: 1.0,
     };
