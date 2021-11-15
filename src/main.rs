@@ -9,6 +9,7 @@ mod camera;
 mod canvas;
 mod color;
 mod cube;
+mod cylinder;
 mod examples;
 mod float;
 mod intersection;
