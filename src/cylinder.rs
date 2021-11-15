@@ -51,8 +51,8 @@ impl Shape for Cylinder {
         }
     }
 
-    fn normal_at(&self, _local_point: tuple::Tuple) -> tuple::Tuple {
-        Tuple::vector(0., 0., 0.)
+    fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
+        Tuple::vector(local_point[0], 0., local_point[2])
     }
 }
 
@@ -99,6 +99,26 @@ mod tests {
             let ray = Ray::new(origin, direction.normalize());
             let ts = cylinder.intersect(&ray);
             assert!(ts.iter().zip(expected_ts).all(|(&a, b)| float::is_equal(a, b)));
+        }
+    }
+
+    #[test]
+    fn test_normal_at() {
+        let cylinder = Cylinder::new(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
+
+        let test_cases = vec![
+            (Tuple::point(1., 0., 0.), Tuple::vector(1., 0., 0.)),
+            (Tuple::point(0., 5., -1.), Tuple::vector(0., 0., -1.)),
+            (Tuple::point(0., -2., 1.), Tuple::vector(0., 0., 1.)),
+            (Tuple::point(-1., 1., 0.), Tuple::vector(-1., 0., 0.)),
+        ];
+
+        for (point, expected_value) in test_cases {
+            let normal = cylinder.normal_at(point);
+            assert!(normal.is_equal(expected_value));
         }
     }
 }
