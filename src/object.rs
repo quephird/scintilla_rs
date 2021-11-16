@@ -1,5 +1,5 @@
 use crate::shape::Shape;
-use crate::{cube, cylinder, material, plane, ray, sphere, tuple};
+use crate::{cone, cube, cylinder, material, plane, ray, sphere, tuple};
 use crate::intersection::Intersection;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::tuple::TupleMethods;
@@ -10,6 +10,7 @@ pub enum Object {
     Plane(plane::Plane),
     Cube(cube::Cube),
     Cylinder(cylinder::Cylinder),
+    Cone(cone::Cone),
 }
 
 impl Object {
@@ -20,19 +21,11 @@ impl Object {
             Object::Plane(plane) => plane.intersect(&local_ray),
             Object::Cube(cube) => cube.intersect(&local_ray),
             Object::Cylinder(cylinder) => cylinder.intersect(&local_ray),
+            Object::Cone(cone) => cone.intersect(&local_ray),
         };
         ts.iter()
             .map(|&t| Intersection::new(t, self))
             .collect()
-    }
-
-    pub fn as_shape(&self) -> &dyn Shape {
-        match self {
-            Object::Sphere(sphere) => sphere,
-            Object::Plane(plane) => plane,
-            Object::Cube(cube) => cube,
-            Object::Cylinder(cylinder) => cylinder,
-        }
     }
 
     pub fn normal_at(&self, world_point: tuple::Tuple) -> tuple::Tuple {
@@ -42,6 +35,7 @@ impl Object {
             Object::Plane(plane) => plane.normal_at(local_point),
             Object::Cube(cube) => cube.normal_at(local_point),
             Object::Cylinder(cylinder) => cylinder.normal_at(local_point),
+            Object::Cone(cone) => cone.normal_at(local_point),
         };
         let mut world_normal = self
             .get_inverse_transform()
@@ -57,6 +51,7 @@ impl Object {
             Object::Plane(plane) => plane.inverse_transform,
             Object::Cube(cube) => cube.inverse_transform,
             Object::Cylinder(cylinder) => cylinder.inverse_transform,
+            Object::Cone(cone) => cone.inverse_transform,
         }
     }
 
@@ -66,6 +61,7 @@ impl Object {
             Object::Plane(plane) => &plane.material,
             Object::Cube(cube) => &cube.material,
             Object::Cylinder(cylinder) => &cylinder.material,
+            Object::Cone(cone) => &cone.material,
         }
     }
 
@@ -79,6 +75,8 @@ impl Object {
             (Object::Cube(c1), Object::Cube(c2)) =>
                 c1.transform.is_equal(c2.transform),
             (Object::Cylinder(c1), Object::Cylinder(c2)) =>
+                c1.transform.is_equal(c2.transform),
+            (Object::Cone(c1), Object::Cone(c2)) =>
                 c1.transform.is_equal(c2.transform),
             _ => false,
         }

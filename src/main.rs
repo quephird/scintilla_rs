@@ -8,6 +8,7 @@ use crate::tuple::TupleMethods;
 mod camera;
 mod canvas;
 mod color;
+mod cone;
 mod cube;
 mod cylinder;
 mod examples;
