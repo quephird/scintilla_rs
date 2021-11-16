@@ -28,9 +28,9 @@ mod tuple;
 mod world;
 
 fn main() {
-    let world = examples::chapter_twelve_scene();
+    let world = examples::chapter_thirteen_scene();
 
-    let from = Tuple::point(0., 1.5, -5.);
+    let from = Tuple::point(0., 3.5, -5.);
     let to = Tuple::point(0., 1., 0.);
     let up = Tuple::vector(0., 1., 0.);
     let view = transform::view(from, to, up);

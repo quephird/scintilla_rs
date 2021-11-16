@@ -5,6 +5,7 @@ use crate::light::Light;
 use crate::material::Material;
 use crate::{color, material, matrix, pattern, transform};
 use crate::cube::Cube;
+use crate::cylinder::Cylinder;
 use crate::material::Coloring::{SolidColor, SurfacePattern};
 use crate::matrix::Matrix4Methods;
 use crate::object::Object;
@@ -533,4 +534,57 @@ pub fn chapter_twelve_scene() -> World {
     );
 
     World::new(light, vec![cube, floor])
+}
+
+pub fn chapter_thirteen_scene() -> World {
+    let light = Light::new(
+        Tuple::point(-10., 10., -10.),
+        Color::new(1., 1., 1.),
+    );
+
+    let material = Material {
+        color: SolidColor(Color::new(0.2, 0.2, 0.8)),
+        ambient: 0.5,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.1,
+        transparency: 0.0,
+        refractive: 1.0,
+    };
+    let cylinder = Object::Cylinder(
+        Cylinder::new_capped(
+            transform::translation(0., 0., 0.),
+            material,
+            0., 2.,
+        )
+    );
+
+    let checkered = SurfacePattern(
+        Checker2DPattern(
+            Checker2D::new(
+                color::WHITE,
+                color::BLACK,
+                transform::rotation_y(PI/3.),
+            )
+        )
+    );
+    let floor_material = Material {
+        color: checkered,
+        ambient: 0.1,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.4,
+        transparency: 0.0,
+        refractive: 1.0,
+    };
+    let floor = Object::Plane(
+        Plane::new(
+            matrix::IDENTITY,
+            floor_material,
+        )
+    );
+
+    World::new(light, vec![cylinder, floor])
 }
