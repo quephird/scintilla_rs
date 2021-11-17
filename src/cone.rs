@@ -11,6 +11,7 @@ pub struct Cone {
     pub material: material::Material,
     pub minimum: f64,
     pub maximum: f64,
+    pub is_closed: bool,
 }
 
 impl Cone {
@@ -21,12 +22,57 @@ impl Cone {
             material: material,
             minimum: -f64::INFINITY,
             maximum: f64::INFINITY,
+            is_closed: false,
         }
     }
-}
 
-impl Shape for Cone {
-    fn intersect(&self, local_ray: &ray::Ray) -> Vec<f64> {
+    pub fn new_capped(transform: Matrix4, material: Material, minimum: f64, maximum: f64) -> Cone {
+        Cone {
+            transform: transform,
+            inverse_transform: transform.inverse().unwrap(),
+            material: material,
+            minimum: minimum,
+            maximum: maximum,
+            is_closed: true,
+        }
+    }
+
+    // This is a helper function to reduce code duplication,
+    // checks to see if the intersection at `t` is within a radius
+    // y from the y axis.
+    fn check_cap(&self, local_ray: &ray::Ray, t: f64, y: f64) -> bool {
+        let x = local_ray.origin[0] + t * local_ray.direction[0];
+        let z = local_ray.origin[2] + t * local_ray.direction[2];
+        (x*x + z*z) <= y.abs()
+    }
+
+    fn intersect_caps(&self, local_ray: &ray::Ray) -> Vec<f64> {
+        // Caps only matter if the cylinder is closed, and might possibly be
+        // intersected by the ray.
+        if !self.is_closed || local_ray.direction[1].abs() < float::EPSILON {
+            vec![]
+        } else {
+            let mut ts = vec![];
+
+            // Check for an intersection with the lower end cap by intersecting
+            // the ray with the plane at cylinder minimum.
+            let t1 = (self.minimum - local_ray.origin[1]) / local_ray.direction[1];
+            if self.check_cap(local_ray, t1, self.minimum) {
+                ts.push(t1);
+            }
+
+            // Now check for an intersection with the upper end cap by intersecting
+            // the ray with the plane at cylinder maximum.
+            let t2 = (self.maximum - local_ray.origin[1]) / local_ray.direction[1];
+            if self.check_cap(local_ray, t2, self.maximum) {
+                ts.push(t2);
+            }
+
+            ts
+        }
+    }
+
+    fn intersect_walls(&self, local_ray: &ray::Ray) -> Vec<f64> {
         let a = local_ray.direction[0]*local_ray.direction[0] -
             local_ray.direction[1]*local_ray.direction[1] +
             local_ray.direction[2]*local_ray.direction[2];
@@ -78,6 +124,16 @@ impl Shape for Cone {
             }
         }
     }
+}
+
+impl Shape for Cone {
+    fn intersect(&self, local_ray: &ray::Ray) -> Vec<f64> {
+        let mut wall_ts = self.intersect_walls(local_ray);
+        let mut caps_ts = self.intersect_caps(local_ray);
+
+        wall_ts.append(&mut caps_ts);
+        wall_ts
+    }
 
     fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
         Tuple::vector(0., 0., 1.)
@@ -125,5 +181,25 @@ mod tests {
         let ts = cone.intersect(&ray);
         assert_eq!(ts.len(), 1);
         assert!(float::is_equal(ts[0], 0.35355));
+    }
+
+    #[test]
+    fn test_intersect_capped() {
+        let cone = Cone::new_capped(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+            -0.5, 0.5,
+        );
+
+        let test_cases = vec![
+            (Tuple::point(0., 0., -5.), Tuple::vector(0., 1., 0.), 0),
+            (Tuple::point(0., 0., -0.25), Tuple::vector(0., 1., 1.), 2),
+            (Tuple::point(0., 0., -0.25), Tuple::vector(0., 1., 0.), 4),
+        ];
+        for (origin, direction, expected_count) in test_cases {
+            let ray = Ray::new(origin, direction.normalize());
+            let ts = cone.intersect(&ray);
+            assert_eq!(ts.len(), expected_count);
+        }
     }
 }
