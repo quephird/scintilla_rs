@@ -1,4 +1,5 @@
 use crate::{float, material, matrix, ray, tuple};
+use crate::float::EPSILON;
 use crate::material::Material;
 use crate::matrix::{Matrix4, Matrix4Methods};
 use crate::shape::Shape;
@@ -136,7 +137,18 @@ impl Shape for Cone {
     }
 
     fn normal_at(&self, local_point: tuple::Tuple) -> tuple::Tuple {
-        Tuple::vector(0., 0., 1.)
+        let distance = local_point[0] * local_point[0] +
+            local_point[2] * local_point[2];
+
+        if distance < 1. && local_point[1] >= self.maximum - EPSILON {
+            Tuple::vector(0., 1., 0.)
+        } else if distance < 1. && local_point[1] <= self.minimum + EPSILON {
+            Tuple::vector(0., -1., 0.)
+        } else if local_point[0] > 0. {
+            Tuple::vector(local_point[0], -distance.sqrt(), local_point[2])
+        } else {
+            Tuple::vector(local_point[0], distance.sqrt(), local_point[2])
+        }
     }
 }
 
@@ -200,6 +212,25 @@ mod tests {
             let ray = Ray::new(origin, direction.normalize());
             let ts = cone.intersect(&ray);
             assert_eq!(ts.len(), expected_count);
+        }
+    }
+
+    #[test]
+    fn test_normal_at_capped() {
+        let cylinder = Cone::new_infinite(
+            matrix::IDENTITY,
+            material::DEFAULT_MATERIAL,
+        );
+
+        let test_cases = vec![
+            (Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 0.)),
+            (Tuple::point(1., 1., 1.), Tuple::vector(1., -2.0_f64.sqrt(), 1.)),
+            (Tuple::point(-1., -1., 0.), Tuple::vector(-1., 1., 0.)),
+        ];
+
+        for (point, expected_value) in test_cases {
+            let normal = cylinder.normal_at(point);
+            assert!(normal.is_equal(expected_value));
         }
     }
 }
