@@ -4,6 +4,7 @@ use crate::color::Color;
 use crate::light::Light;
 use crate::material::Material;
 use crate::{color, material, matrix, pattern, transform};
+use crate::cone::Cone;
 use crate::cube::Cube;
 use crate::cylinder::Cylinder;
 use crate::material::Coloring::{SolidColor, SurfacePattern};
@@ -542,8 +543,19 @@ pub fn chapter_thirteen_scene() -> World {
         Color::new(1., 1., 1.),
     );
 
+    let gradient_transform = transform::scaling(1., 2.01, 1.)
+        .multiply_matrix(transform::rotation_z(PI/2.));
+    let gradient = SurfacePattern(
+        GradientPattern(
+            Gradient::new(
+                Color::new(0.9, 1.0, 0.0),
+                Color::new(0.1, 0.2, 0.8),
+                gradient_transform,
+            )
+        )
+    );
     let material = Material {
-        color: SolidColor(Color::new(0.2, 0.2, 0.8)),
+        color: gradient,
         ambient: 0.5,
         diffuse: 0.9,
         specular: 0.9,
@@ -554,9 +566,38 @@ pub fn chapter_thirteen_scene() -> World {
     };
     let cylinder = Object::Cylinder(
         Cylinder::new_capped(
-            transform::translation(0., 0., 0.),
+            transform::translation(-2., 0., 0.),
             material,
             0., 2.,
+        )
+    );
+
+    let ringed = SurfacePattern(
+        RingPattern(
+            Ring::new(
+                color::WHITE,
+                Color::new(1.0, 0.0, 0.0),
+                transform::scaling(0.1, 0.1, 0.1),
+            )
+        )
+    );
+    let material = Material {
+        color: ringed,
+        ambient: 0.5,
+        diffuse: 0.9,
+        specular: 0.9,
+        shininess: 200.0,
+        reflective: 0.1,
+        transparency: 0.0,
+        refractive: 1.0,
+    };
+    let transform = transform::translation(2., 2., 0.)
+        .multiply_matrix(transform::scaling(1., 2., 1.));
+    let cone = Object::Cone(
+        Cone::new_capped(
+            transform,
+            material,
+            -1., 0.,
         )
     );
 
@@ -586,5 +627,5 @@ pub fn chapter_thirteen_scene() -> World {
         )
     );
 
-    World::new(light, vec![cylinder, floor])
+    World::new(light, vec![cylinder, cone, floor])
 }
